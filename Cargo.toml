@@ -1,0 +1,9 @@
+[package]
+name = "coolq-sdk-rust"
+version = "0.0.1"
+authors = ["soeur <juzi201314@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+encoding = "0.2.33"
+lazy_static = "1.2.0"
