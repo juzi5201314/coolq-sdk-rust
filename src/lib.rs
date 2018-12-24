@@ -73,7 +73,7 @@ pub mod cqpapi {
     }
 
     #[export_name = "Initialize"]
-    pub unsafe  extern "stdcall" fn initialize(auth_code: i32) -> i32 {
+    pub unsafe extern "stdcall" fn initialize(auth_code: i32) -> i32 {
         AUTH_CODE = auth_code;
         0
     }
@@ -221,9 +221,9 @@ pub mod cqpapi {
         }
     }
 
-    pub fn set_group_kick(group_id: i64, user_id: i64, refuse_rejoin: i32) -> i32 {
+    pub fn set_group_kick(group_id: i64, user_id: i64, refuse_rejoin: bool) -> i32 {
         unsafe {
-            CQ_setGroupKick(AUTH_CODE, group_id, user_id, refuse_rejoin)
+            CQ_setGroupKick(AUTH_CODE, group_id, user_id, refuse_rejoin as i32)
         }
     }
 
@@ -257,9 +257,9 @@ pub mod cqpapi {
         }
     }
 
-    pub fn set_group_anonymous(group_id: i64, enable: i32) -> i32 {
+    pub fn set_group_anonymous(group_id: i64, enable: bool) -> i32 {
         unsafe {
-            CQ_setGroupAnonymous(AUTH_CODE, group_id, enable)
+            CQ_setGroupAnonymous(AUTH_CODE, group_id, enable as i32)
         }
     }
 
@@ -269,9 +269,9 @@ pub mod cqpapi {
         }
     }
 
-    pub fn set_group_leave(group_id: i64, dispose: i32) -> i32 {
+    pub fn set_group_leave(group_id: i64, dispose: bool) -> i32 {
         unsafe {
-            CQ_setGroupLeave(AUTH_CODE, group_id, dispose)
+            CQ_setGroupLeave(AUTH_CODE, group_id, dispose as i32)
         }
     }
 
@@ -293,9 +293,9 @@ pub mod cqpapi {
         }
     }
 
-    pub fn get_group_member_info_v2(group_id: i64, user_id: i64, use_cache: i32) -> String {
+    pub fn get_group_member_info_v2(group_id: i64, user_id: i64, use_cache: bool) -> String {
         unsafe {
-            utf8(CQ_getGroupMemberInfoV2(AUTH_CODE, group_id, user_id, use_cache))
+            utf8(CQ_getGroupMemberInfoV2(AUTH_CODE, group_id, user_id, use_cache as i32))
         }
     }
 
@@ -311,9 +311,9 @@ pub mod cqpapi {
         }
     }
 
-    pub fn get_stranger_info(user_id: i64, use_cache: i32) -> String {
+    pub fn get_stranger_info(user_id: i64, use_cache: bool) -> String {
         unsafe {
-            utf8(CQ_getStrangerInfo(AUTH_CODE, user_id, use_cache))
+            utf8(CQ_getStrangerInfo(AUTH_CODE, user_id, use_cache as i32))
         }
     }
 
