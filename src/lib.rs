@@ -3,25 +3,25 @@ extern crate encoding;
 use std::ffi::{CString, CStr};
 
 use encoding::{Encoding, EncoderTrap, DecoderTrap};
-use encoding::all::GBK;
+use encoding::all::GB18030;
 
 use std::os::raw::c_char;
 
 mod cqp;
 
-pub fn gbk(str: &str) -> *const c_char {
-    CString::new(GBK.encode(str, EncoderTrap::Ignore).unwrap()).unwrap().into_raw()
+pub fn gb18030(str: &str) -> *const c_char {
+    CString::new(GB18030.encode(str, EncoderTrap::Ignore).unwrap()).unwrap().into_raw()
 }
 
 pub fn utf8(char: *const c_char) -> String {
     unsafe {
-        GBK.decode(CStr::from_ptr(char).to_bytes(), DecoderTrap::Ignore).unwrap()[..].to_string()
+        GB18030.decode(CStr::from_ptr(char).to_bytes(), DecoderTrap::Ignore).unwrap()[..].to_string()
     }
 }
 
 pub mod cqpapi {
 
-    use super::{cqp::*, gbk, utf8};
+    use super::{cqp::*, gb18030, utf8};
 
     use std::os::raw::c_char;
 
@@ -69,7 +69,7 @@ pub mod cqpapi {
     #[export_name = "AppInfo"]
     pub unsafe extern "stdcall" fn app_info() -> *const c_char {
         let (version, appid) = appinfo();
-        gbk(format!("{},{}", version, appid).as_str())
+        gb18030(format!("{},{}", version, appid).as_str())
     }
 
     #[export_name = "Initialize"]
@@ -193,19 +193,19 @@ pub mod cqpapi {
 
     pub fn send_private_msg(user_id: i64, msg: &str) -> i32 {
         unsafe {
-            CQ_sendPrivateMsg(AUTH_CODE,user_id, gbk(msg))
+            CQ_sendPrivateMsg(AUTH_CODE,user_id, gb18030(msg))
         }
     }
 
     pub fn send_group_msg(group_id: i64, msg: &str) -> i32 {
         unsafe {
-            CQ_sendGroupMsg(AUTH_CODE, group_id, gbk(msg))
+            CQ_sendGroupMsg(AUTH_CODE, group_id, gb18030(msg))
         }
     }
 
     pub fn send_discuss_msg(discussio_id: i64, msg: &str) -> i32 {
         unsafe {
-            CQ_sendDiscussMsg(AUTH_CODE, discussio_id, gbk(msg))
+            CQ_sendDiscussMsg(AUTH_CODE, discussio_id, gb18030(msg))
         }
     }
 
@@ -241,7 +241,7 @@ pub mod cqpapi {
 
     pub fn set_group_title(group_id: i64, user_id: i64, title: &str, time: i64) -> i32 {
         unsafe {
-            CQ_setGroupSpecialTitle(AUTH_CODE, group_id, user_id, gbk(title), time)
+            CQ_setGroupSpecialTitle(AUTH_CODE, group_id, user_id, gb18030(title), time)
         }
     }
 
@@ -253,7 +253,7 @@ pub mod cqpapi {
 
     pub fn set_group_anonymous_ban(group_id: i64, anonymous_name: &str, time: i64) -> i32 {
         unsafe {
-            CQ_setGroupAnonymousBan(AUTH_CODE, group_id, gbk(anonymous_name), time)
+            CQ_setGroupAnonymousBan(AUTH_CODE, group_id, gb18030(anonymous_name), time)
         }
     }
 
@@ -265,7 +265,7 @@ pub mod cqpapi {
 
     pub fn set_group_card(group_id: i64, user_id: i64, nickname: &str) -> i32 {
         unsafe {
-            CQ_setGroupCard(AUTH_CODE, group_id, user_id, gbk(nickname))
+            CQ_setGroupCard(AUTH_CODE, group_id, user_id, gb18030(nickname))
         }
     }
 
@@ -283,13 +283,13 @@ pub mod cqpapi {
 
     pub fn set_friend_add_request(flag: &str, response: i32, comment: &str) -> i32 {
         unsafe {
-            CQ_setFriendAddRequest(AUTH_CODE, gbk(flag), response, gbk(comment))
+            CQ_setFriendAddRequest(AUTH_CODE, gb18030(flag), response, gb18030(comment))
         }
     }
 
     pub fn set_group_add_request_v2(flag: &str, request: i32, response: i32, reason: &str) -> i32 {
         unsafe {
-            CQ_setGroupAddRequestV2(AUTH_CODE, gbk(flag), request, response, gbk(reason))
+            CQ_setGroupAddRequestV2(AUTH_CODE, gb18030(flag), request, response, gb18030(reason))
         }
     }
 
@@ -319,7 +319,7 @@ pub mod cqpapi {
 
     pub fn add_log(priority: i32, tag: &str, msg: &str) -> i32 {
         unsafe {
-            CQ_addLog(AUTH_CODE, priority, gbk(tag), gbk(msg))
+            CQ_addLog(AUTH_CODE, priority, gb18030(tag), gb18030(msg))
         }
     }
 
@@ -355,13 +355,13 @@ pub mod cqpapi {
 
     pub fn set_fatal(error_message: &str) -> i32 {
         unsafe {
-            CQ_setFatal(AUTH_CODE, gbk(error_message))
+            CQ_setFatal(AUTH_CODE, gb18030(error_message))
         }
     }
 
     pub fn get_record(file: &str, outformat: &str) -> String {
         unsafe {
-            utf8(CQ_getRecord(AUTH_CODE, gbk(file), gbk(outformat)))
+            utf8(CQ_getRecord(AUTH_CODE, gb18030(file), gb18030(outformat)))
         }
     }
 }
