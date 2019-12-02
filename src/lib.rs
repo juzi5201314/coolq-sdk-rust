@@ -1,30 +1,53 @@
+#![allow(dead_code)]
+
 #[macro_use]
 extern crate lazy_static;
 
-use encoding::{Encoding, EncoderTrap, DecoderTrap};
+use std::ffi::{CString, CStr};
+use encoding::{EncoderTrap, DecoderTrap, Encoding};
 use encoding::all::GB18030;
 
-use std::os::raw::c_char;
-use std::ffi::{CString, CStr};
 use std::mem;
+use std::os::raw::c_char;
 
+use events::*;
 use listener::*;
 
-mod cqp;
 pub mod api;
-pub mod listener;
+mod cqp;
+pub mod events;
+mod listener;
+
+pub use listener::register_listener;
+
+use std::cell::RefCell;
+use crate::api::{add_log, CQLogLevel, Flag, get_group_list, send_private_msg, get_stranger_info};
+use crate::qqtargets::User;
+use std::mem::size_of_val;
+
+
+pub mod qqtargets;
 
 #[macro_export]
 macro_rules! gb18030 {
     ($e:expr) => {
-        CString::new(GB18030.encode($e, EncoderTrap::Ignore).unwrap()).unwrap().into_raw()
-    }
+        unsafe {
+            CString::new(GB18030.encode($e, EncoderTrap::Ignore).unwrap())
+                .unwrap()
+                .into_raw()
+        }
+    };
 }
 
 #[macro_export]
 macro_rules! utf8 {
     ($e:expr) => {
-        GB18030.decode(CStr::from_ptr($e).to_bytes(), DecoderTrap::Ignore).unwrap()[..].to_string()
+        unsafe {
+            GB18030
+                .decode(CStr::from_ptr($e).to_bytes(), DecoderTrap::Ignore)
+                .unwrap()[..]
+                .to_string()
+        }
     };
 }
 
@@ -37,14 +60,18 @@ extern "stdcall" {
 
 #[export_name = "AppInfo"]
 pub unsafe extern "stdcall" fn app_info() -> *const c_char {
-    extern "Rust" { fn app_info() -> (usize, String); }
+    extern "Rust" {
+        fn app_info() -> (usize, String);
+    }
     let (version, appid) = app_info();
     gb18030!(format!("{},{}", version, appid).as_str())
 }
 
 #[export_name = "Initialize"]
 pub unsafe extern "stdcall" fn initialize(auth_code: i32) -> i32 {
-    extern "Rust" { fn main(); }
+    extern "Rust" {
+        fn main();
+    }
     AUTH_CODE = auth_code;
     api::init();
     main();
@@ -53,320 +80,171 @@ pub unsafe extern "stdcall" fn initialize(auth_code: i32) -> i32 {
 
 #[no_mangle]
 pub extern "stdcall" fn on_enable() -> i32 {
-    call_event(Events::Enable, Box::new(EnableEvent { canceld: false }));
-    0
+    call_event(Events::Enable, &mut EnableEvent::default())
+}
+
+// sub_type 子类型，11/来自好友 1/来自在线状态 2/来自群 3/来自讨论组
+#[no_mangle]
+pub extern "stdcall" fn on_private_msg(
+    sub_type: i32,
+    msg_id: i32,
+    user_id: i64,
+    msg: *const c_char,
+    font: i32,
+) -> i32 {
+    call_event(
+        Events::PrivateMessage,
+        &mut PrivateMessageEvent {
+            canceld: false,
+            sub_type: sub_type,
+            msg_id: msg_id,
+            user_id: user_id,
+            msg: utf8!(msg),
+            font: font,
+            user: User::new(user_id),
+        },
+    )
 }
 
 #[no_mangle]
-pub extern "stdcall" fn on_private_msg(sub_type: i32, send_time: i32, user_id: i64, msg: *const c_char, font: i32) -> i32 {
-    call_event(Events::PrivateMessage, Box::new(PrivateMessageEvent { canceld: false }));
-    0
+pub extern "stdcall" fn on_group_msg(
+    sub_type: i32,
+    msg_id: i32,
+    group_id: i64,
+    user_id: i64,
+    from_anonymous: *const c_char,
+    msg: *const c_char,
+    font: i32,
+) -> i32 {
+    call_event(
+        Events::GroupMessage,
+        &mut GroupMessageEvent {
+            canceld: false,
+            sub_type: sub_type,
+            msg_id: msg_id,
+            group_id: group_id,
+            user_id: user_id,
+            from_anonymous: utf8!(from_anonymous),
+            msg: utf8!(msg),
+            font: font,
+        },
+    )
 }
 
-
-/*
-pub fn send_group_msg(group_id: i64, msg: &str) -> i32 {
-    unsafe {
-        CQ_sendGroupMsg(AUTH_CODE, group_id, gb18030(msg))
-    }
+#[no_mangle]
+pub extern "stdcall" fn on_discuss_msg(
+    sub_type: i32,
+    msg_id: i32,
+    discuss_id: i64,
+    user_id: i64,
+    msg: *const c_char,
+    font: i32,
+) -> i32 {
+    call_event(
+        Events::DiscussMessage,
+        &mut DiscussMessageEvent {
+            canceld: false,
+            sub_type: sub_type,
+            msg_id: msg_id,
+            discuss_id: discuss_id,
+            user_id: user_id,
+            msg: utf8!(msg),
+            font: font,
+        },
+    )
 }
 
-pub fn send_discuss_msg(discussio_id: i64, msg: &str) -> i32 {
-    unsafe {
-        CQ_sendDiscussMsg(AUTH_CODE, discussio_id, gb18030(msg))
-    }
+#[no_mangle]
+pub extern "stdcall" fn on_group_upload(sub_type: i32, send_time: i32, group_id: i64, user_id: i64, file: *const c_char) -> i32 {
+    call_event(Events::GroupUpload, &mut GroupUploadEvent {
+        canceld: false,
+        sub_type: sub_type,
+        group_id: group_id,
+        user_id: user_id,
+        send_time: send_time,
+        file: utf8!(file),
+    })
 }
 
-pub fn delete_msg(message_id: i64) -> i32 {
-    unsafe {
-        CQ_deleteMsg(AUTH_CODE, message_id)
-    }
+#[no_mangle]
+pub extern "stdcall" fn on_group_admin(sub_type: i32, send_time: i32, group_id: i64, user_id: i64) -> i32 {
+    call_event(Events::GroupAdmin, &mut GroupAdminEvent {
+        canceld: false,
+        sub_type: sub_type,
+        group_id: group_id,
+        user_id: user_id,
+        send_time: send_time,
+    })
 }
 
-pub fn send_like(user_id: i64) -> i32 {
-    unsafe {
-        CQ_sendLike(AUTH_CODE, user_id)
-    }
+#[no_mangle]
+pub extern "stdcall" fn on_group_member_decrease(sub_type: i32, send_time: i32, group_id: i64, operate_user_id: i64, being_operate_user_id: i64) -> i32 {
+    call_event(Events::GroupMemberDecrease, &mut GroupMemberDecreaseEvent {
+        canceld: false,
+        sub_type: sub_type,
+        group_id: group_id,
+        operate_user_id: if sub_type == 1 { being_operate_user_id } else { operate_user_id },
+        send_time: send_time,
+        being_operate_user_id: being_operate_user_id,
+    })
 }
 
-pub fn set_group_kick(group_id: i64, user_id: i64, refuse_rejoin: bool) -> i32 {
-    unsafe {
-        CQ_setGroupKick(AUTH_CODE, group_id, user_id, refuse_rejoin as i32)
-    }
+#[no_mangle]
+pub extern "stdcall" fn on_group_member_increase(sub_type: i32, send_time: i32, group_id: i64, operate_user_id: i64, being_operate_user_id: i64) -> i32 {
+    call_event(Events::GroupMemberIncrease, &mut GroupMemberIncreaseEvent {
+        canceld: false,
+        sub_type: sub_type,
+        group_id: group_id,
+        operate_user_id: operate_user_id,
+        send_time: send_time,
+        being_operate_user_id: being_operate_user_id,
+    })
 }
 
-pub fn set_group_ban(group_id: i64, user_id: i64, time: i64) -> i32 {
-    unsafe {
-        CQ_setGroupBan(AUTH_CODE, group_id, user_id, time)
-    }
+#[no_mangle]
+pub extern "stdcall" fn on_group_ban(sub_type: i32, send_time: i32, group_id: i64, operate_user_id: i64, being_operate_user_id: i64, time: i64) -> i32 {
+    call_event(Events::GroupBan, &mut GroupBanEvent {
+        canceld: false,
+        sub_type: sub_type,
+        group_id: group_id,
+        operate_user_id: operate_user_id,
+        send_time: send_time,
+        being_operate_user_id: being_operate_user_id,
+        time: time,
+    })
 }
 
-pub fn set_group_admin(group_id: i64, user_id: i64, become_admin: bool) -> i32 {
-    unsafe {
-        CQ_setGroupAdmin(AUTH_CODE, group_id, user_id, become_admin as i32)
-    }
+#[no_mangle]
+pub extern "stdcall" fn on_friend_add(sub_type: i32, send_time: i32, user_id: i64) -> i32 {
+    call_event(Events::FriendAdd, &mut FriendAddEvent {
+        canceld: false,
+        sub_type: sub_type,
+        send_time: send_time,
+        user_id: user_id,
+    })
 }
 
-pub fn set_group_title(group_id: i64, user_id: i64, title: &str, time: i64) -> i32 {
-    unsafe {
-        CQ_setGroupSpecialTitle(AUTH_CODE, group_id, user_id, gb18030(title), time)
-    }
+#[no_mangle]
+pub extern "stdcall" fn on_add_friend_request(sub_type: i32, send_time: i32, user_id: i64, msg: *const c_char, flag: *const c_char) -> i32 {
+    call_event(Events::AddFriendRequest, &mut AddFriendRequestEvent {
+        canceld: false,
+        sub_type: sub_type,
+        send_time: send_time,
+        user_id: user_id,
+        msg: utf8!(msg),
+        flag: Flag::from(utf8!(flag)),
+    })
 }
 
-pub fn set_group_whole_ban(group_id: i64, enable: bool) -> i32 {
-    unsafe {
-        CQ_setGroupWholeBan(AUTH_CODE, group_id, enable as i32)
-    }
+#[no_mangle]
+pub extern "stdcall" fn on_add_group_request(sub_type: i32, send_time: i32, group_id: i64, user_id: i64, msg: *const c_char, flag: *const c_char) -> i32 {
+    call_event(Events::AddGroupRequest, &mut AddGroupRequestEvent {
+        canceld: false,
+        sub_type: sub_type,
+        send_time: send_time,
+        group_id: group_id,
+        user_id: user_id,
+        msg: utf8!(msg),
+        flag: Flag::from(utf8!(flag)),
+    })
 }
-
-pub fn set_group_anonymous_ban(group_id: i64, anonymous_name: &str, time: i64) -> i32 {
-    unsafe {
-        CQ_setGroupAnonymousBan(AUTH_CODE, group_id, gb18030(anonymous_name), time)
-    }
-}
-
-pub fn set_group_anonymous(group_id: i64, enable: bool) -> i32 {
-    unsafe {
-        CQ_setGroupAnonymous(AUTH_CODE, group_id, enable as i32)
-    }
-}
-
-pub fn set_group_card(group_id: i64, user_id: i64, nickname: &str) -> i32 {
-    unsafe {
-        CQ_setGroupCard(AUTH_CODE, group_id, user_id, gb18030(nickname))
-    }
-}
-
-pub fn set_group_leave(group_id: i64, dispose: bool) -> i32 {
-    unsafe {
-        CQ_setGroupLeave(AUTH_CODE, group_id, dispose as i32)
-    }
-}
-
-pub fn set_discuss_leave(discussio_id: i64) -> i32 {
-    unsafe {
-        CQ_setDiscussLeave(AUTH_CODE, discussio_id)
-    }
-}
-
-pub fn set_friend_add_request(flag: &str, response: i32, comment: &str) -> i32 {
-    unsafe {
-        CQ_setFriendAddRequest(AUTH_CODE, gb18030(flag), response, gb18030(comment))
-    }
-}
-
-pub fn set_group_add_request_v2(flag: &str, request: i32, response: i32, reason: &str) -> i32 {
-    unsafe {
-        CQ_setGroupAddRequestV2(AUTH_CODE, gb18030(flag), request, response, gb18030(reason))
-    }
-}
-
-pub fn get_group_member_info_v2(group_id: i64, user_id: i64, use_cache: bool) -> String {
-    unsafe {
-        utf8(CQ_getGroupMemberInfoV2(AUTH_CODE, group_id, user_id, use_cache as i32))
-    }
-}
-
-pub fn get_group_member_list(group_id: i64) -> String {
-    unsafe {
-        utf8(CQ_getGroupMemberList(AUTH_CODE, group_id))
-    }
-}
-
-pub fn get_group_list() -> String {
-    unsafe {
-        utf8(CQ_getGroupList(AUTH_CODE))
-    }
-}
-
-pub fn get_stranger_info(user_id: i64, use_cache: bool) -> String {
-    unsafe {
-        utf8(CQ_getStrangerInfo(AUTH_CODE, user_id, use_cache as i32))
-    }
-}
-
-pub fn add_log(priority: i32, tag: &str, msg: &str) -> i32 {
-    unsafe {
-        CQ_addLog(AUTH_CODE, priority, gb18030(tag), gb18030(msg))
-    }
-}
-
-pub fn get_cookies() -> String {
-    unsafe {
-        utf8(CQ_getCookies(AUTH_CODE))
-    }
-}
-
-pub fn get_csrf_token() -> i32 {
-    unsafe {
-        CQ_getCsrfToken(AUTH_CODE)
-    }
-}
-
-pub fn get_login_qq() -> i64 {
-    unsafe {
-        CQ_getLoginQQ(AUTH_CODE)
-    }
-}
-
-pub fn get_login_nick() -> String {
-    unsafe {
-        utf8(CQ_getLoginNick(AUTH_CODE))
-    }
-}
-
-pub fn get_app_directory() -> String {
-    unsafe {
-        utf8(CQ_getAppDirectory(AUTH_CODE))
-    }
-}
-
-pub fn set_fatal(error_message: &str) -> i32 {
-    unsafe {
-        CQ_setFatal(AUTH_CODE, gb18030(error_message))
-    }
-}
-
-pub fn get_record(file: &str, outformat: &str) -> String {
-    unsafe {
-        utf8(CQ_getRecord(AUTH_CODE, gb18030(file), gb18030(outformat)))
-    }
-}
-*/
-
-/*
-pub mod cqpapi {
-
-    use super::{cqp::*, gb18030, utf8};
-
-    use std::os::raw::c_char;
-
-
-
-
-
-
-    extern "Rust" {
-        #[allow(improper_ctypes)]
-        pub fn appinfo() -> (i32, String);
-        pub fn start() -> i32;
-    }
-
-
-
-    #[export_name = "startup"]
-    pub unsafe extern "stdcall" fn startup() -> i32 {
-        start()
-    }
-
-    #[no_mangle]
-    pub unsafe extern "stdcall" fn on_add_group(sub_type: i32, send_time: i32, group_id: i64, user_id: i64, msg: *const c_char, flag: *const c_char) -> i32 {
-        let mut c = EVENT_IGNORE;
-        if let Some(f) = ON_ADD_GROUP.as_ref() {
-            c = f(sub_type, send_time, group_id, user_id, utf8(msg), utf8(flag));
-        }
-        c
-    }
-
-    #[no_mangle]
-    pub unsafe extern "stdcall" fn on_add_friend(sub_type: i32, send_time: i32, user_id: i64, msg: *const c_char, flag: *const c_char) -> i32 {
-        let mut c = EVENT_IGNORE;
-        if let Some(f) = ON_ADD_FRIEND.as_ref() {
-            c = f(sub_type, send_time, user_id, utf8(msg), utf8(flag));
-        }
-        c
-    }
-
-    #[no_mangle]
-    pub unsafe extern "stdcall" fn on_friend_add(sub_type: i32, send_time: i32, user_id: i64) -> i32 {
-        let mut c = EVENT_IGNORE;
-        if let Some(f) = ON_FRIEND_ADD.as_ref() {
-            c = f(sub_type, send_time, user_id);
-        }
-        c
-    }
-
-    #[no_mangle]
-    pub unsafe extern "stdcall" fn on_group_member_increase(sub_type: i32, send_time: i32, group_id: i64, from_user_id: i64, user_id: i64) -> i32 {
-        let mut c = EVENT_IGNORE;
-        if let Some(f) = ON_GROUP_MEMBER_INCREASE.as_ref() {
-            c = f(sub_type, send_time, group_id, from_user_id, user_id);
-        }
-        c
-    }
-
-    #[no_mangle]
-    pub unsafe extern "stdcall" fn on_group_member_decrease(sub_type: i32, send_time: i32, group_id: i64, from_user_id: i64, user_id: i64) -> i32 {
-        let mut c = EVENT_IGNORE;
-        if let Some(f) = ON_GROUP_MEMBER_DECREASE.as_ref() {
-            c = f(sub_type, send_time, group_id, from_user_id, user_id);
-        }
-        c
-    }
-
-    #[no_mangle]
-    pub unsafe extern "stdcall" fn on_group_admin(sub_type: i32, send_time: i32, group_id: i64, user_id: i64) -> i32 {
-        let mut c = EVENT_IGNORE;
-        if let Some(f) = ON_GROUP_ADMIN.as_ref() {
-            c = f(sub_type, send_time, group_id, user_id);
-        }
-        c
-    }
-
-    #[no_mangle]
-    pub unsafe extern "stdcall" fn on_discuss_message(sub_type: i32, send_time: i32, discuss_id: i64, user_id: i64, msg: *const c_char, font: i32) -> i32 {
-        let mut c = EVENT_IGNORE;
-        if let Some(f) = ON_DISCUSS_MESSAGE.as_ref() {
-            c = f(sub_type, send_time, discuss_id, user_id, utf8(msg), font);
-        }
-        c
-    }
-
-    #[no_mangle]
-    pub unsafe extern "stdcall" fn on_private_message(sub_type: i32, send_time: i32, user_id: i64, msg: *const c_char, font: i32) -> i32 {
-        let mut c = EVENT_IGNORE;
-        if let Some(f) = ON_PRIVATE_MESSAGE.as_ref() {
-            c = f(sub_type, send_time, user_id, utf8(msg), font);
-        }
-        c
-    }
-
-    #[no_mangle]
-    pub unsafe extern "stdcall" fn on_group_message(sub_type: i32, send_time: i32, group_id: i64, user_id: i64, anonymous: *const c_char, msg: *const c_char, font: i32) ->i32 {
-        let mut c = EVENT_IGNORE;
-        if let Some(f) = ON_GROUP_MESSAGE.as_ref() {
-            c = f(sub_type, send_time, group_id, user_id, utf8(anonymous), utf8(msg), font);
-        }
-        c
-    }
-
-    #[no_mangle]
-    pub unsafe extern "stdcall" fn enable() -> i32 {
-        let mut c = EVENT_IGNORE;
-        if let Some(f) = ON_ENABLE.as_ref() {
-            c = f();
-        }
-        c
-    }
-
-    #[no_mangle]
-    pub unsafe extern "stdcall" fn disable() -> i32 {
-        let mut c = EVENT_IGNORE;
-        if let Some(f) = ON_DISABLE.as_ref() {
-            c = f();
-        }
-        c
-    }
-
-    #[no_mangle]
-    pub unsafe extern "stdcall" fn exit() -> i32 {
-        let mut c = EVENT_IGNORE;
-        if let Some(f) = ON_EXIT.as_ref() {
-            c = f();
-        }
-        c
-    }
-
-
-}
-*/
