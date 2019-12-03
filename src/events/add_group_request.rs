@@ -1,5 +1,6 @@
 use super::{Event, Events};
 use crate::api::{Flag, set_group_add_request_v2};
+use crate::qqtargets::{Group, User};
 
 #[derive(Debug)]
 pub struct AddGroupRequestEvent {
@@ -9,7 +10,9 @@ pub struct AddGroupRequestEvent {
     pub group_id: i64,
     pub user_id: i64,
     pub msg: String,
-    pub flag: Flag
+    pub flag: Flag,
+    pub(crate) group: Group,
+    pub(crate) user: User
 }
 
 impl AddGroupRequestEvent {
@@ -23,6 +26,14 @@ impl AddGroupRequestEvent {
 
     pub fn handle(&self, approve: bool, reason: &str) {
         set_group_add_request_v2(self.flag.clone(), self.sub_type, approve, reason);
+    }
+
+    pub fn get_user(&self) -> &User {
+        &self.user
+    }
+
+    pub fn get_group(&self) -> &Group {
+        &self.group
     }
 }
 

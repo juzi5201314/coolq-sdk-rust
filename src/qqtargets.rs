@@ -44,7 +44,7 @@ pub trait ReadString: Read {
 
 impl<R: Read + ?Sized> ReadString for R {}
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct File {
     pub id: String,
     pub name: String,
@@ -64,7 +64,7 @@ impl File {
     }
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone)]
 pub struct Anonymous {
     pub group_id: i64,
     pub user_id: i64,
@@ -90,7 +90,7 @@ impl Anonymous {
 }
 
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum GroupRole {
     Member,
     Admin,
@@ -114,7 +114,7 @@ impl Default for GroupRole {
     }
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone)]
 pub struct GroupMember {
     pub group_id: i64,
     pub user_id: i64,
@@ -170,7 +170,7 @@ impl GroupMember {
     }
 }
 
-#[derive(Debug, Default)]
+#[derive(Debug, Default, Clone)]
 pub struct Group {
     pub group_id: i64,
     pub group_name: String,
@@ -185,7 +185,7 @@ impl Message for Group {
 }
 
 impl Group {
-    //只有群号信息
+
     pub fn new(group_id: i64) -> Group {
         get_group_info(group_id, false)
     }
@@ -251,7 +251,7 @@ impl Group {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum UserSex {
     Male,
     Female,
@@ -274,7 +274,7 @@ impl Default for UserSex {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct User {
     pub user_id: i64,
     pub nickname: String,

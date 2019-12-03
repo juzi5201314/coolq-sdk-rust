@@ -1,5 +1,6 @@
 use super::{Event, Events};
 use crate::api::{Flag, set_friend_add_request};
+use crate::qqtargets::User;
 
 #[derive(Debug)]
 pub struct AddFriendRequestEvent {
@@ -8,12 +9,17 @@ pub struct AddFriendRequestEvent {
     pub send_time: i32,
     pub user_id: i64,
     pub msg: String,
-    pub flag: Flag
+    pub flag: Flag,
+    pub(crate) user: User
 }
 
 impl AddFriendRequestEvent {
     pub fn handle(&self, approve: bool, comment: &str) {
         set_friend_add_request(self.flag.clone(), approve, comment);
+    }
+
+    pub fn get_user(&self) -> &User {
+        &self.user
     }
 }
 

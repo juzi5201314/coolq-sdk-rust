@@ -176,18 +176,21 @@ pub extern "stdcall" fn on_group_admin(sub_type: i32, send_time: i32, group_id: 
         group_id: group_id,
         user_id: user_id,
         send_time: send_time,
+        group: Group::new(group_id),
+        user: User::new(user_id)
     })
 }
 
 #[no_mangle]
 pub extern "stdcall" fn on_group_member_decrease(sub_type: i32, send_time: i32, group_id: i64, operate_user_id: i64, being_operate_user_id: i64) -> i32 {
+    let being_operate_user = User::new(being_operate_user_id);
     call_event(Events::GroupMemberDecrease, &mut GroupMemberDecreaseEvent {
         canceld: false,
         sub_type: sub_type,
-        group_id: group_id,
-        operate_user_id: if sub_type == 1 { being_operate_user_id } else { operate_user_id },
+        group: Group::new(group_id),
+        operate_user: if sub_type == 1 { being_operate_user.clone() } else { User::new(operate_user_id) },
         send_time: send_time,
-        being_operate_user_id: being_operate_user_id,
+        being_operate_user: being_operate_user
     })
 }
 
@@ -196,10 +199,10 @@ pub extern "stdcall" fn on_group_member_increase(sub_type: i32, send_time: i32, 
     call_event(Events::GroupMemberIncrease, &mut GroupMemberIncreaseEvent {
         canceld: false,
         sub_type: sub_type,
-        group_id: group_id,
-        operate_user_id: operate_user_id,
+        group: Group::new(group_id),
+        operate_user: User::new(operate_user_id),
         send_time: send_time,
-        being_operate_user_id: being_operate_user_id,
+        being_operate_user: User::new(being_operate_user_id)
     })
 }
 
@@ -209,10 +212,11 @@ pub extern "stdcall" fn on_group_ban(sub_type: i32, send_time: i32, group_id: i6
         canceld: false,
         sub_type: sub_type,
         group_id: group_id,
-        operate_user_id: operate_user_id,
+        operate_user: User::new(operate_user_id),
         send_time: send_time,
-        being_operate_user_id: being_operate_user_id,
+        being_operate_user: User::new(being_operate_user_id),
         time: time,
+        group: Group::new(group_id)
     })
 }
 
@@ -235,6 +239,7 @@ pub extern "stdcall" fn on_add_friend_request(sub_type: i32, send_time: i32, use
         user_id: user_id,
         msg: utf8!(msg),
         flag: Flag::from(utf8!(flag)),
+        user: User::new(user_id)
     })
 }
 
@@ -248,5 +253,7 @@ pub extern "stdcall" fn on_add_group_request(sub_type: i32, send_time: i32, grou
         user_id: user_id,
         msg: utf8!(msg),
         flag: Flag::from(utf8!(flag)),
+        group: Group::new(group_id),
+        user: User::new(user_id)
     })
 }
