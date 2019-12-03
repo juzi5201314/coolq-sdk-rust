@@ -2,6 +2,9 @@
 //dirmod::all!(default file);
 
 mod enable;
+mod start;
+mod exit;
+mod disable;
 mod private_message;
 mod group_message;
 mod discuss_message;
@@ -15,6 +18,9 @@ mod add_friend_request;
 mod add_group_request;
 
 pub use enable::*;
+pub use start::*;
+pub use disable::*;
+pub use exit::*;
 pub use private_message::*;
 pub use group_message::*;
 pub use discuss_message::*;

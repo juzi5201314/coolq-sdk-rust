@@ -24,6 +24,7 @@ use std::cell::RefCell;
 use crate::api::{add_log, CQLogLevel, Flag, get_group_list, send_private_msg, get_stranger_info};
 use crate::qqtargets::{User, Group, File};
 use std::mem::size_of_val;
+use std::path::Prefix::DeviceNS;
 
 
 pub mod qqtargets;
@@ -83,7 +84,22 @@ pub extern "stdcall" fn on_enable() -> i32 {
     call_event(Events::Enable, &mut EnableEvent::default())
 }
 
-// sub_type 子类型，11/来自好友 1/来自在线状态 2/来自群 3/来自讨论组
+#[no_mangle]
+pub extern "stdcall" fn on_start() -> i32 {
+    call_event(Events::Start, &mut StartEvent::default())
+}
+
+#[no_mangle]
+pub extern "stdcall" fn on_disable() -> i32 {
+    call_event(Events::Disable, &mut DisableEvent::default())
+}
+
+
+#[no_mangle]
+pub extern "stdcall" fn on_exit() -> i32 {
+    call_event(Events::Exit, &mut ExitEvent::default())
+}
+
 #[no_mangle]
 pub extern "stdcall" fn on_private_msg(
     sub_type: i32,
