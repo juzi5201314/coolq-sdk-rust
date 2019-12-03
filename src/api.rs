@@ -234,8 +234,8 @@ pub fn set_group_whole_ban(group_id: i64, enable: bool) -> i32 {
     unsafe { SET_GROUP_WHOLE_BAN.unwrap()(AUTH_CODE, group_id, enable as i32) }
 }
 
-pub fn set_group_anonymous_ban(group_id: i64, anonymous_name: &str, time: i64) -> i32 {
-    unsafe { SET_GROUP_ANONYMOUS_BAN.unwrap()(AUTH_CODE, group_id, gb18030!(anonymous_name), time) }
+pub fn set_group_anonymous_ban(group_id: i64, anonymous_flag: Flag, time: i64) -> i32 {
+    unsafe { SET_GROUP_ANONYMOUS_BAN.unwrap()(AUTH_CODE, group_id, gb18030!(anonymous_flag.as_str()), time) }
 }
 
 pub fn set_group_anonymous(group_id: i64, enable: bool) -> i32 {

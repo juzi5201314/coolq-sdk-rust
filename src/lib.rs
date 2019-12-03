@@ -22,7 +22,7 @@ pub use listener::register_listener;
 
 use std::cell::RefCell;
 use crate::api::{add_log, CQLogLevel, Flag, get_group_list, send_private_msg, get_stranger_info};
-use crate::qqtargets::{User, Group};
+use crate::qqtargets::{User, Group, File};
 use std::mem::size_of_val;
 
 
@@ -112,7 +112,7 @@ pub extern "stdcall" fn on_group_msg(
     msg_id: i32,
     group_id: i64,
     user_id: i64,
-    from_anonymous: *const c_char,
+    anonymous_flag: *const c_char,
     msg: *const c_char,
     font: i32,
 ) -> i32 {
@@ -124,7 +124,7 @@ pub extern "stdcall" fn on_group_msg(
             msg_id: msg_id,
             group_id: group_id,
             user_id: user_id,
-            from_anonymous: utf8!(from_anonymous),
+            anonymous_flag: utf8!(anonymous_flag),
             msg: utf8!(msg),
             font: font,
             group: Group::new(group_id),
@@ -164,7 +164,7 @@ pub extern "stdcall" fn on_group_upload(sub_type: i32, send_time: i32, group_id:
         group_id: group_id,
         user_id: user_id,
         send_time: send_time,
-        file: utf8!(file),
+        file: File::decode(utf8!(file).as_bytes().to_vec()),
     })
 }
 

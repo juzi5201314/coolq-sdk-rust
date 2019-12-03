@@ -7,7 +7,7 @@ use byteorder::{BigEndian, ReadBytesExt};
 use encoding::{EncoderTrap, DecoderTrap, Encoding};
 use encoding::all::GB18030;
 
-use crate::api::{send_private_msg, get_stranger_info, add_log, CQLogLevel, get_group_member_list, get_group_member_info_v2, get_group_info, send_group_msg};
+use crate::api::{send_private_msg, get_stranger_info, add_log, CQLogLevel, get_group_member_list, get_group_member_info_v2, get_group_info, send_group_msg, set_group_anonymous_ban, Flag};
 
 macro_rules! utf8 {
     ($b:expr) => {
@@ -43,6 +43,52 @@ pub trait ReadString: Read {
 }
 
 impl<R: Read + ?Sized> ReadString for R {}
+
+#[derive(Debug)]
+pub struct File {
+    pub id: String,
+    pub name: String,
+    pub size: i64,
+    pub busid: i64
+}
+
+impl File {
+    pub(crate) fn decode(b: Vec<u8>) -> File {
+        let mut b = Cursor::new(base64::decode(&b).unwrap());
+        File {
+            id: b.read_string().unwrap(),
+            name: b.read_string().unwrap(),
+            size: b.read_i64::<BigEndian>().unwrap(),
+            busid: b.read_i64::<BigEndian>().unwrap()
+        }
+    }
+}
+
+#[derive(Debug, Default)]
+pub struct Anonymous {
+    pub group_id: i64,
+    pub user_id: i64,
+    pub name: String,
+    pub flag: Flag
+}
+
+impl Anonymous {
+
+    pub fn ban(&self, time: i64) {
+        set_group_anonymous_ban(self.group_id, self.flag.clone(), time);
+    }
+
+    pub(crate) fn decode(b: Vec<u8>, group_id: i64) -> Anonymous {
+        let mut c = Cursor::new(base64::decode(&b).unwrap());
+        Anonymous {
+            group_id: group_id,
+            user_id: c.read_i64::<BigEndian>().unwrap(),
+            name: c.read_string().unwrap(),
+            flag: unsafe { String::from_utf8_unchecked(b)}
+        }
+    }
+}
+
 
 #[derive(Debug)]
 pub enum GroupRole {

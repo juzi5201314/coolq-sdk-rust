@@ -1,4 +1,5 @@
 use super::{Event, Events};
+use crate::qqtargets::File;
 
 #[derive(Debug)]
 pub struct GroupUploadEvent {
@@ -7,7 +8,7 @@ pub struct GroupUploadEvent {
     pub send_time: i32,
     pub group_id: i64,
     pub user_id: i64,
-    pub file: String
+    pub file: File
 }
 
 impl Event for GroupUploadEvent {

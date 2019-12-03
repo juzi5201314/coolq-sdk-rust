@@ -1,5 +1,5 @@
 use super::{Event, Events};
-use crate::qqtargets::{Group, User, cqcode, Message};
+use crate::qqtargets::{Group, User, cqcode, Message, Anonymous};
 use std::ops::Add;
 
 #[derive(Debug)]
@@ -9,7 +9,7 @@ pub struct GroupMessageEvent {
     pub msg_id: i32,
     pub group_id: i64,
     pub user_id: i64,
-    pub from_anonymous: String,
+    pub anonymous_flag: String,
     pub msg: String,
     pub font: i32,
     pub(crate) group: Group,
@@ -23,6 +23,18 @@ impl GroupMessageEvent {
 
     pub fn get_group(&self) -> &Group {
         &self.group
+    }
+
+    pub fn is_anonymous(&self) -> bool {
+        !self.anonymous_flag.is_empty()
+    }
+
+    pub fn get_anonymous(&self) -> Anonymous {
+        if self.is_anonymous() {
+            Anonymous::decode(self.anonymous_flag.as_bytes().to_vec(), self.group_id)
+        } else {
+            Anonymous::default()
+        }
     }
 
     pub fn reply(&self, msg: &str) {
