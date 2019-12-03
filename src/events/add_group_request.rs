@@ -1,5 +1,5 @@
 use super::{Event, Events};
-use crate::api::Flag;
+use crate::api::{Flag, set_group_add_request_v2};
 
 #[derive(Debug)]
 pub struct AddGroupRequestEvent {
@@ -10,6 +10,20 @@ pub struct AddGroupRequestEvent {
     pub user_id: i64,
     pub msg: String,
     pub flag: Flag
+}
+
+impl AddGroupRequestEvent {
+    pub fn is_invite(&self) -> bool {
+        self.sub_type == 2
+    }
+
+    pub fn is_application(&self) -> bool {
+        self.sub_type == 1
+    }
+
+    pub fn handle(&self, approve: bool, reason: &str) {
+        set_group_add_request_v2(self.flag.clone(), self.sub_type, approve, reason);
+    }
 }
 
 impl Event for AddGroupRequestEvent {

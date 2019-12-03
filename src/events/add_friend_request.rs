@@ -1,5 +1,5 @@
 use super::{Event, Events};
-use crate::api::Flag;
+use crate::api::{Flag, set_friend_add_request};
 
 #[derive(Debug)]
 pub struct AddFriendRequestEvent {
@@ -9,6 +9,12 @@ pub struct AddFriendRequestEvent {
     pub user_id: i64,
     pub msg: String,
     pub flag: Flag
+}
+
+impl AddFriendRequestEvent {
+    pub fn handle(&self, approve: bool, comment: &str) {
+        set_friend_add_request(self.flag.clone(), approve, comment);
+    }
 }
 
 impl Event for AddFriendRequestEvent {
