@@ -4,18 +4,16 @@ use std::ops::Add;
 
 use byteorder::{BigEndian, ReadBytesExt};
 
-use encoding::{EncoderTrap, DecoderTrap, Encoding};
+use encoding::{DecoderTrap, Encoding};
 use encoding::all::GB18030;
 
-use crate::api::{send_private_msg, get_stranger_info, add_log, CQLogLevel, get_group_member_list, get_group_member_info_v2, get_group_info, send_group_msg, set_group_anonymous_ban, Flag, set_group_card, set_group_anonymous, set_group_whole_ban, set_group_ban, set_group_kick};
+use crate::api::{send_private_msg, get_stranger_info, get_group_member_list, get_group_member_info_v2, get_group_info, send_group_msg, set_group_anonymous_ban, Flag, set_group_card, set_group_anonymous, set_group_whole_ban, set_group_ban, set_group_kick};
 
 macro_rules! utf8 {
     ($b:expr) => {
-        unsafe {
-            GB18030
-                .decode($b, DecoderTrap::Ignore).unwrap()[..]
-                .to_string()
-        }
+        GB18030
+            .decode($b, DecoderTrap::Ignore).unwrap()[..]
+            .to_string()
     }
 }
 
@@ -25,7 +23,7 @@ pub(crate) fn read_multi_object(b: Vec<u8>) -> Vec<Vec<u8>> {
     let mut vs = Vec::new();
     for _ in 0..count {
         let mut v = vec![0u8; b.read_i16::<BigEndian>().unwrap() as usize];
-        b.read_exact(&mut v);
+        b.read_exact(&mut v).unwrap();
         vs.push(v);
     }
     vs
@@ -36,8 +34,8 @@ pub trait ReadString: Read {
         let len = self.read_i16::<BigEndian>()?;
         if len > 0 {
             let mut v = vec![0u8; len as usize];
-            self.read_exact(&mut v);
-            Ok(utf8!(v.as_slice()))
+            self.read_exact(&mut v).unwrap();
+            Ok(unsafe { utf8!(v.as_slice()) })
         } else { Ok(String::new()) }
     }
 }
@@ -49,7 +47,7 @@ pub struct File {
     pub id: String,
     pub name: String,
     pub size: i64,
-    pub busid: i64
+    pub busid: i64,
 }
 
 impl File {
@@ -59,7 +57,7 @@ impl File {
             id: b.read_string().unwrap(),
             name: b.read_string().unwrap(),
             size: b.read_i64::<BigEndian>().unwrap(),
-            busid: b.read_i64::<BigEndian>().unwrap()
+            busid: b.read_i64::<BigEndian>().unwrap(),
         }
     }
 }
@@ -69,11 +67,10 @@ pub struct Anonymous {
     pub group_id: i64,
     pub user_id: i64,
     pub name: String,
-    pub flag: Flag
+    pub flag: Flag,
 }
 
 impl Anonymous {
-
     pub fn ban(&self, time: i64) {
         set_group_anonymous_ban(self.group_id, self.flag.clone(), time);
     }
@@ -84,7 +81,7 @@ impl Anonymous {
             group_id: group_id,
             user_id: c.read_i64::<BigEndian>().unwrap(),
             name: c.read_string().unwrap(),
-            flag: unsafe { String::from_utf8_unchecked(b)}
+            flag: unsafe { String::from_utf8_unchecked(b) },
         }
     }
 }
@@ -185,7 +182,6 @@ impl Message for Group {
 }
 
 impl Group {
-
     pub fn new(group_id: i64) -> Group {
         get_group_info(group_id, false)
     }
@@ -303,14 +299,7 @@ impl User {
         let mut b = Cursor::new(base64::decode(&b).unwrap());
         User {
             user_id: b.read_i64::<BigEndian>().unwrap(),
-            nickname: {
-                let len = b.read_i16::<BigEndian>().unwrap();
-                if len > 0 {
-                    let mut v = vec![0; len as usize];
-                    b.read_exact(&mut v);
-                    utf8!(v.as_slice())
-                } else { String::new() }
-            },
+            nickname: b.read_string().unwrap(),
             sex: UserSex::from(b.read_i32::<BigEndian>().unwrap()),
             age: b.read_i32::<BigEndian>().unwrap(),
         }
@@ -358,10 +347,9 @@ pub trait Message {
         self.send_message(cqcode::music_custom(url, audio, title, content, image).as_str())
     }
 
-    fn send_share(&self, url: &str,  title: &str, content: &str, image: &str) {
+    fn send_share(&self, url: &str, title: &str, content: &str, image: &str) {
         self.send_message(cqcode::share(url, title, content, image).as_str())
     }
-
 }
 
 pub mod cqcode {
@@ -381,7 +369,7 @@ pub mod cqcode {
         //发送base64编码的图片。"JXU2MThCJXU4QkY0JXU4QkREJXVGRjBDJXU1NDNCJXU2MjEx"
         Base64(String),
         //发送二进制图片。"很明显，这个没办法演示给你看"
-        Binary(Vec<u8>)
+        Binary(Vec<u8>),
     }
 
     impl Image {
@@ -392,28 +380,28 @@ pub mod cqcode {
                 Image::Default(s) => s.clone(),
                 Image::File(s) => {
                     let filename = Path::new(s).file_name().unwrap();
-                    fs::copy(s, data_dir.join(Path::new(filename)));
+                    fs::copy(s, data_dir.join(Path::new(filename))).unwrap();
                     filename.to_str().unwrap().to_string()
-                },
+                }
                 Image::Binary(b) => {
                     let filename = format!("{}.jpg", uuid::Uuid::new_v4());
                     let mut f = fs::File::create(Path::new(data_dir).join(&filename)).unwrap();
-                    f.write_all(b);
-                    f.flush();
+                    f.write_all(b).unwrap();
+                    f.flush().unwrap();
                     filename
-                },
+                }
                 Image::Base64(s) => {
                     let filename = format!("{}.jpg", uuid::Uuid::new_v4());
                     let mut f = fs::File::create(Path::new(data_dir).join(&filename)).unwrap();
-                    f.write_all(base64::decode(s.as_bytes()).unwrap().as_slice());
-                    f.flush();
+                    f.write_all(base64::decode(s.as_bytes()).unwrap().as_slice()).unwrap();
+                    f.flush().unwrap();
                     filename
-                },
+                }
                 Image::Http(s) => {
                     let filename = format!("{}.jpg", uuid::Uuid::new_v4());
                     let mut f = fs::File::create(Path::new(data_dir).join(&filename)).unwrap();
-                    f.write_all(reqwest::get(s.as_str()).unwrap().text().unwrap().as_bytes());
-                    f.flush();
+                    f.write_all(reqwest::get(s.as_str()).unwrap().text().unwrap().as_bytes()).unwrap();
+                    f.flush().unwrap();
                     filename
                 }
             }
@@ -491,8 +479,7 @@ pub mod cqcode {
         format!("[CQ:music,type=custom,url={url},audio={audio},title={title},content={content},image={image}]", url = url, audio = audio, title = title, content = content, image = image)
     }
 
-    pub fn share(url: &str,  title: &str, content: &str, image: &str) -> String {
-        format!("[CQ:share,url={url},title={title},content={content},image={image}]", url= url, title = title, content = content, image = image)
+    pub fn share(url: &str, title: &str, content: &str, image: &str) -> String {
+        format!("[CQ:share,url={url},title={title},content={content},image={image}]", url = url, title = title, content = content, image = image)
     }
-
 }

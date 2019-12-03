@@ -12,7 +12,7 @@ pub struct DiscussMessageEvent {
 }
 
 impl DiscussMessageEvent {
-    fn get_user() {}
+    pub fn get_user() {}
     //fn get_discuss() {} qq已经放弃讨论组，所以讨论组方面的东西就不写了。
 }
 

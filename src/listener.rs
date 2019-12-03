@@ -7,7 +7,7 @@ use super::events::{Event, Events};
 use crate::cqp::{EVENT_IGNORE, EVENT_BLOCK};
 
 lazy_static! {
-    static ref listeners: RwLock<HashMap<Events, fn(E: &mut Event)>> = RwLock::new(HashMap::new());
+    static ref listeners: RwLock<HashMap<Events, fn(E: &mut dyn Event)>> = RwLock::new(HashMap::new());
 }
 
 pub fn register_listener<E>(event_type: Events, callback: fn(&mut E)) where E: Event {

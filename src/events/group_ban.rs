@@ -1,6 +1,5 @@
 use super::{Event, Events};
 use crate::qqtargets::{Group, User};
-use crate::api::{set_group_ban, set_group_whole_ban};
 
 #[derive(Debug)]
 pub struct GroupBanEvent {
