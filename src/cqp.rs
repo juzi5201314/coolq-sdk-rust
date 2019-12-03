@@ -26,7 +26,7 @@ pub type CQ_sendGroupMsg =
     extern "stdcall" fn(auth_code: i32, group_id: i64, msg: *const c_char) -> i32;
 pub type CQ_sendDiscussMsg =
     extern "stdcall" fn(auth_code: i32, discussio_id: i64, msg: *const c_char) -> i32;
-pub type CQ_deleteMsg = extern "stdcall" fn(auth_code: i32, message_id: i64) -> i32;
+pub type CQ_deleteMsg = extern "stdcall" fn(auth_code: i32, message_id: i32) -> i32;
 pub type CQ_sendLike = extern "stdcall" fn(auth_code: i32, user_id: i64) -> i32;
 pub type CQ_sendLikeV2 = extern "stdcall" fn(auth_code: i32, user_id: i64, times: i32) -> i32;
 pub type CQ_setGroupKick =

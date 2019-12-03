@@ -358,7 +358,7 @@ pub fn get_app_directory() -> String {
     unsafe { utf8!(GET_APP_DIRECTORY.unwrap()(AUTH_CODE)) }
 }
 
-pub fn delete_msg(message_id: i64) -> i32 {
+pub fn delete_msg(message_id: i32) -> i32 {
     unsafe { DELETE_MSG.unwrap()(AUTH_CODE, message_id) }
 }
 
