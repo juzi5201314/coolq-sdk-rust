@@ -25,7 +25,6 @@ pub struct PrivateMessageEvent {
     pub(crate) canceld: bool,
     pub sub_type: i32,
     pub msg_id: i32,
-    pub user_id: i64,
     pub msg: String,
     pub font: i32,
     pub(crate) user: User

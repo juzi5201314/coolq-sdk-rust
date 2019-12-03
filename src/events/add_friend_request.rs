@@ -7,7 +7,6 @@ pub struct AddFriendRequestEvent {
     pub(crate) canceld: bool,
     pub sub_type: i32,
     pub send_time: i32,
-    pub user_id: i64,
     pub msg: String,
     pub flag: Flag,
     pub(crate) user: User

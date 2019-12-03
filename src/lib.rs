@@ -98,7 +98,6 @@ pub extern "stdcall" fn on_private_msg(
             canceld: false,
             sub_type: sub_type,
             msg_id: msg_id,
-            user_id: user_id,
             msg: utf8!(msg),
             font: font,
             user: User::new(user_id),
@@ -122,8 +121,6 @@ pub extern "stdcall" fn on_group_msg(
             canceld: false,
             sub_type: sub_type,
             msg_id: msg_id,
-            group_id: group_id,
-            user_id: user_id,
             anonymous_flag: utf8!(anonymous_flag),
             msg: utf8!(msg),
             font: font,
@@ -173,8 +170,6 @@ pub extern "stdcall" fn on_group_admin(sub_type: i32, send_time: i32, group_id: 
     call_event(Events::GroupAdmin, &mut GroupAdminEvent {
         canceld: false,
         sub_type: sub_type,
-        group_id: group_id,
-        user_id: user_id,
         send_time: send_time,
         group: Group::new(group_id),
         user: User::new(user_id)
@@ -211,7 +206,6 @@ pub extern "stdcall" fn on_group_ban(sub_type: i32, send_time: i32, group_id: i6
     call_event(Events::GroupBan, &mut GroupBanEvent {
         canceld: false,
         sub_type: sub_type,
-        group_id: group_id,
         operate_user: User::new(operate_user_id),
         send_time: send_time,
         being_operate_user: User::new(being_operate_user_id),
@@ -236,7 +230,6 @@ pub extern "stdcall" fn on_add_friend_request(sub_type: i32, send_time: i32, use
         canceld: false,
         sub_type: sub_type,
         send_time: send_time,
-        user_id: user_id,
         msg: utf8!(msg),
         flag: Flag::from(utf8!(flag)),
         user: User::new(user_id)
@@ -249,8 +242,6 @@ pub extern "stdcall" fn on_add_group_request(sub_type: i32, send_time: i32, grou
         canceld: false,
         sub_type: sub_type,
         send_time: send_time,
-        group_id: group_id,
-        user_id: user_id,
         msg: utf8!(msg),
         flag: Flag::from(utf8!(flag)),
         group: Group::new(group_id),

@@ -8,8 +8,6 @@ pub struct GroupMessageEvent {
     pub(crate) canceld: bool,
     pub sub_type: i32,
     pub msg_id: i32,
-    pub group_id: i64,
-    pub user_id: i64,
     pub anonymous_flag: String,
     pub msg: String,
     pub font: i32,
@@ -36,7 +34,7 @@ impl GroupMessageEvent {
 
     pub fn get_anonymous(&self) -> Anonymous {
         if self.is_anonymous() {
-            Anonymous::decode(self.anonymous_flag.as_bytes().to_vec(), self.group_id)
+            Anonymous::decode(self.anonymous_flag.as_bytes().to_vec(), self.group.group_id)
         } else {
             Anonymous::default()
         }
@@ -47,7 +45,7 @@ impl GroupMessageEvent {
     }
 
     pub fn reply_at(&self, msg: &str) {
-        self.group.send_message(cqcode::at(self.user_id).add(msg).as_str());
+        self.group.send_message(cqcode::at(self.user.user_id).add(msg).as_str());
     }
 
 }
