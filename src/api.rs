@@ -242,8 +242,8 @@ pub fn set_group_anonymous(group_id: i64, enable: bool) -> i32 {
     unsafe { SET_GROUP_ANONYMOUS.unwrap()(AUTH_CODE, group_id, enable as i32) }
 }
 
-pub fn set_group_card(group_id: i64, user_id: i64, nickname: &str) -> i32 {
-    unsafe { SET_GROUP_CARD.unwrap()(AUTH_CODE, group_id, user_id, gb18030!(nickname)) }
+pub fn set_group_card(group_id: i64, user_id: i64, card: &str) -> i32 {
+    unsafe { SET_GROUP_CARD.unwrap()(AUTH_CODE, group_id, user_id, gb18030!(card)) }
 }
 
 pub fn set_group_leave(group_id: i64, is_dismiss: bool) -> i32 {

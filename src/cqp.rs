@@ -56,7 +56,7 @@ pub type CQ_setGroupCard = extern "stdcall" fn(
     auth_code: i32,
     group_id: i64,
     user_id: i64,
-    nickname: *const c_char,
+    card: *const c_char,
 ) -> i32;
 pub type CQ_setGroupLeave =
     extern "stdcall" fn(auth_code: i32, group_id: i64, is_dismiss: i32) -> i32;

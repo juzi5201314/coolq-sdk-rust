@@ -7,7 +7,7 @@ use byteorder::{BigEndian, ReadBytesExt};
 use encoding::{EncoderTrap, DecoderTrap, Encoding};
 use encoding::all::GB18030;
 
-use crate::api::{send_private_msg, get_stranger_info, add_log, CQLogLevel, get_group_member_list, get_group_member_info_v2, get_group_info, send_group_msg, set_group_anonymous_ban, Flag};
+use crate::api::{send_private_msg, get_stranger_info, add_log, CQLogLevel, get_group_member_list, get_group_member_info_v2, get_group_info, send_group_msg, set_group_anonymous_ban, Flag, set_group_card, set_group_anonymous, set_group_whole_ban, set_group_ban, set_group_kick};
 
 macro_rules! utf8 {
     ($b:expr) => {
@@ -201,6 +201,26 @@ impl Group {
 
     pub fn get_member_no_cache(&self, user_id: i64) -> GroupMember {
         get_group_member_info_v2(self.group_id, user_id, true)
+    }
+
+    pub fn set_card(&self, user_id: i64, card: &str) {
+        set_group_card(self.group_id, user_id, card);
+    }
+
+    pub fn set_anonymous(&self, enable: bool) {
+        set_group_anonymous(self.group_id, enable);
+    }
+
+    pub fn set_whole_ban(&self, enable: bool) {
+        set_group_whole_ban(self.group_id, enable);
+    }
+
+    pub fn set_ban(&self, user_id: i64, time: i64) {
+        set_group_ban(self.group_id, user_id, time);
+    }
+
+    pub fn set_kick(&self, user_id: i64, refuse_rejoin: bool) {
+        set_group_kick(self.group_id, user_id, refuse_rejoin);
     }
 
     pub fn update(&mut self) {
