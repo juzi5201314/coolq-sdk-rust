@@ -78,13 +78,14 @@ pub type CQ_getGroupMemberInfoV2 = extern "stdcall" fn(
     auth_code: i32,
     group_id: i64,
     user_id: i64,
-    use_cache: i32,
+    no_cache: i32,
 ) -> *const c_char;
 pub type CQ_getGroupMemberList =
     extern "stdcall" fn(auth_code: i32, group_id: i64) -> *const c_char;
 pub type CQ_getGroupList = extern "stdcall" fn(auth_code: i32) -> *const c_char;
+pub type CQ_getFriendList = extern "stdcall" fn(auth_code: i32, reserved: i32) -> *const c_char;
 pub type CQ_getStrangerInfo =
-    extern "stdcall" fn(auth_code: i32, user_id: i64, use_cache: i32) -> *const c_char;
+    extern "stdcall" fn(auth_code: i32, user_id: i64, no_cache: i32) -> *const c_char;
 pub type CQ_addLog = extern "stdcall" fn(
     auth_code: i32,
     priority: i32,

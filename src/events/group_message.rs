@@ -1,5 +1,8 @@
 use super::{Event, Events};
+use crate::qqtargets::{Group, User, cqcode, Message};
+use std::ops::Add;
 
+#[derive(Debug)]
 pub struct GroupMessageEvent {
     pub(crate) canceld: bool,
     pub sub_type: i32,
@@ -9,11 +12,27 @@ pub struct GroupMessageEvent {
     pub from_anonymous: String,
     pub msg: String,
     pub font: i32,
+    pub(crate) group: Group,
+    pub(crate) user: User
 }
 
 impl GroupMessageEvent {
-    fn get_user() {}
-    fn get_group() {}
+    pub fn get_user(&self) -> &User {
+        &self.user
+    }
+
+    pub fn get_group(&self) -> &Group {
+        &self.group
+    }
+
+    pub fn reply(&self, msg: &str) {
+        self.group.send_message(msg);
+    }
+
+    pub fn reply_at(&self, msg: &str) {
+        self.group.send_message(cqcode::at(self.user_id).add(msg).as_str());
+    }
+
 }
 
 impl Event for GroupMessageEvent {

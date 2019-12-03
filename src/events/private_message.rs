@@ -1,6 +1,7 @@
 use super::{Event, Events};
-use crate::qqtargets::User;
+use crate::qqtargets::{User, Message};
 
+#[derive(Debug)]
 pub enum PrivateMessageType {
     Friend,
     Group,
@@ -8,6 +9,18 @@ pub enum PrivateMessageType {
     Other
 }
 
+impl From<i32> for PrivateMessageType {
+    fn from(i: i32) -> Self {
+        match i {
+            11 => PrivateMessageType::Friend,
+            2 => PrivateMessageType::Group,
+            3 => PrivateMessageType::Discuss,
+            _ => PrivateMessageType::Other
+        }
+    }
+}
+
+#[derive(Debug)]
 pub struct PrivateMessageEvent {
     pub(crate) canceld: bool,
     pub sub_type: i32,
@@ -28,12 +41,7 @@ impl PrivateMessageEvent {
     }
 
     pub fn get_sub_type(&self) -> PrivateMessageType {
-        match self.sub_type {
-            11 => PrivateMessageType::Friend,
-            2 => PrivateMessageType::Group,
-            3 => PrivateMessageType::Discuss,
-            _ => PrivateMessageType::Other
-        }
+        PrivateMessageType::from(self.sub_type)
     }
 
 }

@@ -22,7 +22,7 @@ pub use listener::register_listener;
 
 use std::cell::RefCell;
 use crate::api::{add_log, CQLogLevel, Flag, get_group_list, send_private_msg, get_stranger_info};
-use crate::qqtargets::User;
+use crate::qqtargets::{User, Group};
 use std::mem::size_of_val;
 
 
@@ -127,6 +127,8 @@ pub extern "stdcall" fn on_group_msg(
             from_anonymous: utf8!(from_anonymous),
             msg: utf8!(msg),
             font: font,
+            group: Group::new(group_id),
+            user: User::new(user_id)
         },
     )
 }

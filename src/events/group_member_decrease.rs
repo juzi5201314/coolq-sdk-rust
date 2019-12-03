@@ -1,5 +1,6 @@
 use super::{Event, Events};
 
+#[derive(Debug)]
 pub struct GroupMemberDecreaseEvent {
     pub(crate) canceld: bool,
     pub sub_type: i32,

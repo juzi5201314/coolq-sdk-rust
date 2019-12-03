@@ -3,6 +3,7 @@ use std::mem;
 use crate::cqp;
 #[macro_use]
 use super::*;
+use crate::qqtargets::{Group, read_multi_object, GroupMember};
 
 extern "stdcall" {
     fn LoadLibraryA(lp_module_name: *const u8) -> *const usize;
@@ -42,6 +43,7 @@ static mut SET_GROUP_ADD_REQUEST_V2: Option<cqp::CQ_setGroupAddRequestV2> = None
 static mut GET_GROUP_MEMBER_INFO_V2: Option<cqp::CQ_getGroupMemberInfoV2> = None;
 static mut GET_GROUP_MEMBER_LIST: Option<cqp::CQ_getGroupMemberList> = None;
 static mut GET_GROUP_LIST: Option<cqp::CQ_getGroupList> = None;
+static mut GET_GROUP_INFO: Option<cqp::CQ_getGroupInfo> = None;
 
 static mut SET_DISCUSS_LEAVE: Option<cqp::CQ_setDiscussLeave> = None;
 static mut SET_FRIEND_ADD_REQUEST: Option<cqp::CQ_setFriendAddRequest> = None;
@@ -60,7 +62,7 @@ static mut GET_RECORD_V2: Option<cqp::CQ_getRecordV2> = None;
 static mut GET_IMAGE: Option<cqp::CQ_getImage> = None;
 static mut CAN_SEND_RECORD: Option<cqp::CQ_canSendRecord> = None;
 static mut CAN_SEND_IMAGE: Option<cqp::CQ_canSendImage> = None;
-static mut GET_GROUP_INFO: Option<cqp::CQ_getGroupInfo> = None;
+static mut GET_FRIEND_LIST: Option<cqp::CQ_getFriendList> = None;
 
 pub(crate) unsafe fn init() {
     let m = LoadLibraryA(b"CQP.dll\0".as_ptr() as *const u8);
@@ -187,6 +189,9 @@ pub(crate) unsafe fn init() {
     GET_GROUP_INFO = Some(mem::transmute::<*const usize, cqp::CQ_getGroupInfo>(
         GetProcAddress(m, b"CQ_getGroupInfo\0".as_ptr() as *const u8),
     ));
+    GET_FRIEND_LIST = Some(mem::transmute::<*const usize, cqp::CQ_getFriendList>(
+        GetProcAddress(m, b"CQ_getFriendList\0".as_ptr() as *const u8),
+    ));
 }
 
 pub fn send_private_msg(user_id: i64, msg: &str) -> i32 {
@@ -257,23 +262,31 @@ pub fn set_group_add_request_v2(flag: Flag, request_type: i32, approve: bool, re
     }
 }
 
-pub fn get_group_member_info_v2(group_id: i64, user_id: i64, use_cache: bool) -> String {
+pub fn get_group_member_info_v2(group_id: i64, user_id: i64, no_cache: bool) -> GroupMember {
     unsafe {
-        utf8!(GET_GROUP_MEMBER_INFO_V2.unwrap()(
+        GroupMember::decode(base64::decode(utf8!(GET_GROUP_MEMBER_INFO_V2.unwrap()(
             AUTH_CODE,
             group_id,
             user_id,
-            use_cache as i32
-        ))
+            no_cache as i32
+        )).as_bytes()).unwrap())
     }
 }
 
-pub fn get_group_member_list(group_id: i64) -> String {
-    unsafe { utf8!(GET_GROUP_MEMBER_LIST.unwrap()(AUTH_CODE, group_id)) }
+pub fn get_group_member_list(group_id: i64) -> Vec<GroupMember> {
+    unsafe {
+        read_multi_object(utf8!(GET_GROUP_MEMBER_LIST.unwrap()(AUTH_CODE, group_id)).as_bytes().to_vec()).into_iter().map(|v| {
+            GroupMember::decode(v)
+        }).collect()
+    }
 }
 
-pub fn get_group_list() -> String {
-    unsafe { utf8!(GET_GROUP_LIST.unwrap()(AUTH_CODE)) }
+pub fn get_group_list() -> Vec<Group> {
+    unsafe {
+        read_multi_object(utf8!(GET_GROUP_LIST.unwrap()(AUTH_CODE)).as_bytes().to_vec()).into_iter().map(|v| {
+            Group::decode_base(v)
+        }).collect()
+    }
 }
 
 pub fn set_discuss_leave(discussio_id: i64) -> i32 {
@@ -291,12 +304,12 @@ pub fn set_friend_add_request(flag: Flag, approve: bool, comment: &str) -> i32 {
     }
 }
 
-pub fn get_stranger_info(user_id: i64, use_cache: bool) -> User {
+pub fn get_stranger_info(user_id: i64, no_cache: bool) -> User {
     unsafe {
         User::decode(utf8!(GET_STRANGER_INFO.unwrap()(
             AUTH_CODE,
             user_id,
-            use_cache as i32
+            no_cache as i32
         )).as_bytes().to_vec())
     }
 }
@@ -385,12 +398,16 @@ pub fn get_image(file: &str) -> String {
     unsafe { utf8!(GET_IMAGE.unwrap()(AUTH_CODE, gb18030!(file))) }
 }
 
-pub fn get_group_info(group_id: i64, no_cache: bool) -> String {
+pub fn get_group_info(group_id: i64, no_cache: bool) -> Group {
     unsafe {
-        utf8!(GET_GROUP_INFO.unwrap()(
+        Group::decode(utf8!(GET_GROUP_INFO.unwrap()(
             AUTH_CODE,
             group_id,
             no_cache as i32
-        ))
+        )).as_bytes().to_vec())
     }
+}
+
+pub fn get_friend_list(reserved: bool) -> String {
+    unsafe { utf8!(GET_FRIEND_LIST.unwrap()(AUTH_CODE, reserved as i32)) }
 }

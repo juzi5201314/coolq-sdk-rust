@@ -2,7 +2,7 @@ use super::{Event, Events};
 
 use std::default::Default;
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 pub struct EnableEvent {
     pub(crate) canceld: bool
 }

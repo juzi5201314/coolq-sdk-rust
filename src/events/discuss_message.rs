@@ -1,5 +1,6 @@
 use super::{Event, Events};
 
+#[derive(Debug)]
 pub struct DiscussMessageEvent {
     pub(crate) canceld: bool,
     pub sub_type: i32,

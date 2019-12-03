@@ -1,6 +1,7 @@
 use super::{Event, Events};
 use crate::api::Flag;
 
+#[derive(Debug)]
 pub struct AddFriendRequestEvent {
     pub(crate) canceld: bool,
     pub sub_type: i32,
