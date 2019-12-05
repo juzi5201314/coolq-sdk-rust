@@ -1,5 +1,5 @@
 use super::{Event, Events};
-use crate::qqtargets::{User, Message};
+use crate::qqtargets::{User, SendMessage, Message};
 
 #[derive(Debug)]
 pub enum PrivateMessageType {
@@ -25,7 +25,7 @@ pub struct PrivateMessageEvent {
     pub(crate) canceld: bool,
     pub sub_type: i32,
     pub msg_id: i32,
-    pub msg: String,
+    pub(crate) msg: Message,
     pub font: i32,
     pub(crate) user: User
 }
@@ -34,6 +34,8 @@ impl PrivateMessageEvent {
     pub fn get_user(&self) -> &User {
         &self.user
     }
+
+    pub fn get_message(&self) -> &Message { &self.msg }
 
     pub fn reply(&self, msg: &str) {
         self.user.send_message(msg);

@@ -1,15 +1,15 @@
 use super::{Event, Events};
-use crate::qqtargets::{Group, User, cqcode, Message, Anonymous};
+use crate::qqtargets::{Group, User, cqcode, SendMessage, Anonymous, Message};
 use std::ops::Add;
-use crate::api::delete_msg;
+use crate::api::{delete_msg, Flag};
 
 #[derive(Debug)]
 pub struct GroupMessageEvent {
     pub(crate) canceld: bool,
     pub sub_type: i32,
     pub msg_id: i32,
-    pub anonymous_flag: String,
-    pub msg: String,
+    pub anonymous_flag: Flag,
+    pub(crate) msg: Message,
     pub font: i32,
     pub(crate) group: Group,
     pub(crate) user: User
@@ -23,6 +23,8 @@ impl GroupMessageEvent {
     pub fn get_group(&self) -> &Group {
         &self.group
     }
+
+    pub fn get_message(&self) -> &Message { &self.msg }
 
     pub fn delete(&self) {
         delete_msg(self.msg_id);

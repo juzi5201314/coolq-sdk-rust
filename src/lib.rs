@@ -5,6 +5,8 @@
 #![allow(non_camel_case_types)]
 #![allow(unused_unsafe)]
 
+#![feature(try_trait)]
+
 #[macro_use]
 extern crate lazy_static;
 
@@ -25,7 +27,7 @@ mod listener;
 pub use listener::register_listener;
 
 use crate::api::Flag;
-use crate::qqtargets::{User, Group, File};
+use crate::qqtargets::{User, Group, File, Message};
 
 pub mod qqtargets;
 
@@ -110,7 +112,7 @@ pub extern "stdcall" fn on_private_msg(
             canceld: false,
             sub_type: sub_type,
             msg_id: msg_id,
-            msg: unsafe { utf8!(msg) },
+            msg: unsafe { Message::new(utf8!(msg)) },
             font: font,
             user: User::new(user_id),
         },
@@ -133,8 +135,8 @@ pub extern "stdcall" fn on_group_msg(
             canceld: false,
             sub_type: sub_type,
             msg_id: msg_id,
-            anonymous_flag: unsafe { utf8!(anonymous_flag) },
-            msg: unsafe { utf8!(msg) },
+            anonymous_flag: unsafe { Flag::from(utf8!(anonymous_flag)) },
+            msg: unsafe { Message::new(utf8!(msg)) },
             font: font,
             group: Group::new(group_id),
             user: User::new(user_id),
