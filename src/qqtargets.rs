@@ -130,7 +130,7 @@ pub struct GroupMember {
     pub card_changeable: bool,
 }
 
-impl Message for GroupMember {
+impl SendMessage for GroupMember {
     fn send_message(&self, msg: &str) {
         send_private_msg(self.user_id, msg);
     }
@@ -175,7 +175,7 @@ pub struct Group {
     pub max_member_count: i32,
 }
 
-impl Message for Group {
+impl SendMessage for Group {
     fn send_message(&self, msg: &str) {
         send_group_msg(self.group_id, msg);
     }
@@ -278,7 +278,7 @@ pub struct User {
     pub age: i32,
 }
 
-impl Message for User {
+impl SendMessage for User {
     fn send_message(&self, msg: &str) {
         send_private_msg(self.user_id, msg);
     }
@@ -306,7 +306,7 @@ impl User {
     }
 }
 
-pub trait Message {
+pub trait SendMessage {
     fn send_message(&self, msg: &str);
 
     fn send_image_message(&self, msg: &str, images: Vec<cqcode::Image>) {
@@ -352,12 +352,119 @@ pub trait Message {
     }
 }
 
+#[derive(Debug, Default, Clone)]
+pub struct Message {
+    pub msg: String,
+    pub raw_msg: String,
+    //如果没有cq吗，则此成员为空。如果未知/未支持（如CQ:hb,CQ:rich），则为Unknown。如果解析错误，则返回默认值。
+    pub cqcodes: Vec<cqcode::CQCode>,
+}
+
+impl Message {
+    pub fn new(s: String) -> Message {
+        if cqcode::has_cq_code(s.as_str()) {
+            Message {
+                msg: Message::escape(cqcode::clean(s.clone())),
+                cqcodes: cqcode::parser(s.clone()),
+                raw_msg: s,
+            }
+        } else {
+            Message {
+                msg: Message::escape(s.clone()),
+                raw_msg: s,
+                cqcodes: Vec::new(),
+            }
+        }
+    }
+
+    //将因为防止与cq码混淆而转义的字符还原
+    fn escape(s: String) -> String {
+        s.replace("&amp;", "&")
+            .replace("&#91;", "[")
+            .replace("&#93;", "]")
+            .replace("&#44;", ",")
+    }
+}
+
 pub mod cqcode {
     use std::path::Path;
     use std::fs;
+    use std::io::Write;
 
     use crate::api::get_app_directory;
-    use std::io::Write;
+
+    use regex::Regex;
+    use std::collections::HashMap;
+
+    lazy_static! {
+            static ref tag: Regex = Regex::new(r"\[CQ:([A-Za-z]*)(?:(,[^\[\]]+))?]").unwrap();
+            static ref args: Regex = Regex::new(r",([A-Za-z]+)=([^,\[\]]+)").unwrap();
+    }
+
+    #[derive(Debug, Clone)]
+    pub enum CQCode {
+        Face(i32),
+        Emoji(i32),
+        Bface(i32),
+        Sface(i32),
+        Image(String),
+        Record(String, bool),
+        At(i64),
+        Rps(i32),
+        //Dice(i32), 接收的骰子表情是一个sface。猜拳未试，估计也是。
+        Shake(),
+        Sign(String, String, String),
+        Location(f32, f32, String, String),
+        Share(String, String, String, String),//
+        Unknown(),
+    }
+
+    pub(crate) fn parser(s: String) -> Vec<CQCode> {
+        if has_cq_code(s.as_str()) {
+            tag.captures_iter(s.as_str()).map(|c| {
+                match c.get(1) {
+                    Some(m) => {
+                        let cargs: HashMap<String, String> = match c.get(2) {
+                            Some(arg) => {
+                                args.captures_iter(arg.as_str()).map(|c| {
+                                    (c.get(1).unwrap().as_str().to_string(), c.get(2).unwrap().as_str().to_string())
+                                }).collect()
+                            }
+                            None => HashMap::new()
+                        };
+                        match m.as_str() {
+                            "face" => CQCode::Face(cargs.get("id").unwrap_or(&std::default::Default::default()).parse::<i32>().unwrap()),
+                            "emoji" => CQCode::Emoji(cargs.get("id").unwrap_or(&"0".to_string()).parse::<i32>().unwrap()),
+                            "bface" => CQCode::Bface(cargs.get("id").unwrap_or(&"0".to_string()).parse::<i32>().unwrap()),
+                            "sface" => CQCode::Sface(cargs.get("id").unwrap_or(&"0".to_string()).parse::<i32>().unwrap()),
+                            "image" => CQCode::Image(cargs.get("file").unwrap_or(&"".to_string()).clone()),
+                            "record" => CQCode::Record(cargs.get("file").unwrap_or(&"".to_string()).clone(), if cargs.get("magic").unwrap_or(&"false".to_string()) == "true" { true } else { false }),
+                            "at" => CQCode::At(cargs.get("qq").unwrap_or(&"0".to_string()).parse::<i64>().unwrap()),
+                            "rps" => CQCode::Sface(cargs.get("type").unwrap_or(&"0".to_string()).parse::<i32>().unwrap()),
+                            "shake" => CQCode::Shake(),
+                            "location" => CQCode::Location(cargs.get("lat").unwrap_or(&"0".to_string()).parse::<f32>().unwrap(), cargs.get("lon").unwrap_or(&"0".to_string()).parse::<f32>().unwrap(), cargs.get("title").unwrap_or(&"".to_string()).clone(), cargs.get("content").unwrap_or(&"".to_string()).clone()),
+                            "sign" => CQCode::Sign(cargs.get("location").unwrap_or(&"".to_string()).clone(), cargs.get("title").unwrap_or(&"".to_string()).clone(), cargs.get("image").unwrap_or(&"".to_string()).clone()),
+                            "share" => CQCode::Share(cargs.get("url").unwrap_or(&"".to_string()).clone(), cargs.get("title").unwrap_or(&"".to_string()).clone(), cargs.get("content").unwrap_or(&"".to_string()).clone(), cargs.get("image").unwrap_or(&"".to_string()).clone()),
+                            _ => CQCode::Unknown()
+                        }
+                    }
+                    None => {
+                        return CQCode::Unknown();
+                    }
+                }
+            }).collect()
+        } else {
+            Vec::new()
+        }
+    }
+
+    pub fn clean(s: String) -> String {
+        tag.replace_all(s.as_str(), "").to_string()
+    }
+
+    pub fn has_cq_code(s: &str) -> bool {
+        tag.is_match(s)
+    }
 
     pub enum Image {
         //默认发送data\image\{image}。"xx.jpg"
@@ -375,7 +482,8 @@ pub mod cqcode {
     impl Image {
         pub(crate) fn to_default(&self) -> String {
             let data_dir = get_app_directory();
-            let data_dir = Path::new(data_dir.as_str()).parent().unwrap().parent().unwrap();
+            //get_app_directory获取到的路径为 酷q目录\data\app\{appid} ，父目录的父目录则为 酷q目录\data。
+            let data_dir = Path::new(data_dir.as_str()).parent().unwrap().parent().unwrap().join(Path::new("image"));
             match self {
                 Image::Default(s) => s.clone(),
                 Image::File(s) => {
@@ -385,21 +493,21 @@ pub mod cqcode {
                 }
                 Image::Binary(b) => {
                     let filename = format!("{}.jpg", uuid::Uuid::new_v4());
-                    let mut f = fs::File::create(Path::new(data_dir).join(&filename)).unwrap();
+                    let mut f = fs::File::create(data_dir.join(&filename)).unwrap();
                     f.write_all(b).unwrap();
                     f.flush().unwrap();
                     filename
                 }
                 Image::Base64(s) => {
                     let filename = format!("{}.jpg", uuid::Uuid::new_v4());
-                    let mut f = fs::File::create(Path::new(data_dir).join(&filename)).unwrap();
+                    let mut f = fs::File::create(data_dir.join(&filename)).unwrap();
                     f.write_all(base64::decode(s.as_bytes()).unwrap().as_slice()).unwrap();
                     f.flush().unwrap();
                     filename
                 }
                 Image::Http(s) => {
                     let filename = format!("{}.jpg", uuid::Uuid::new_v4());
-                    let mut f = fs::File::create(Path::new(data_dir).join(&filename)).unwrap();
+                    let mut f = fs::File::create(data_dir.join(&filename)).unwrap();
                     f.write_all(reqwest::get(s.as_str()).unwrap().text().unwrap().as_bytes()).unwrap();
                     f.flush().unwrap();
                     filename
@@ -451,11 +559,11 @@ pub mod cqcode {
         format!("[CQ:at,qq={qq}]", qq = user_id)
     }
 
-    pub fn rps(_type: i64) -> String {
+    pub fn rps(_type: i32) -> String {
         format!("[CQ:rps,type={t}]", t = _type)
     }
 
-    pub fn dice(_type: i64) -> String {
+    pub fn dice(_type: i32) -> String {
         format!("[CQ:dice,type={t}]", t = _type)
     }
 
