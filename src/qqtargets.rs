@@ -419,6 +419,7 @@ pub mod cqcode {
         Unknown(),
     }
 
+
     pub(crate) fn parser(s: String) -> Vec<CQCode> {
         if has_cq_code(s.as_str()) {
             tag.captures_iter(s.as_str()).map(|c| {
@@ -432,24 +433,28 @@ pub mod cqcode {
                             }
                             None => HashMap::new()
                         };
+                        let get_arg = |arg: &str| -> String {
+                            cargs.get(arg).unwrap_or(&std::default::Default::default()).clone()
+                        };
+
                         match m.as_str() {
-                            "face" => CQCode::Face(cargs.get("id").unwrap_or(&std::default::Default::default()).parse::<i32>().unwrap()),
-                            "emoji" => CQCode::Emoji(cargs.get("id").unwrap_or(&"0".to_string()).parse::<i32>().unwrap()),
-                            "bface" => CQCode::Bface(cargs.get("id").unwrap_or(&"0".to_string()).parse::<i32>().unwrap()),
-                            "sface" => CQCode::Sface(cargs.get("id").unwrap_or(&"0".to_string()).parse::<i32>().unwrap()),
-                            "image" => CQCode::Image(cargs.get("file").unwrap_or(&"".to_string()).clone()),
-                            "record" => CQCode::Record(cargs.get("file").unwrap_or(&"".to_string()).clone(), if cargs.get("magic").unwrap_or(&"false".to_string()) == "true" { true } else { false }),
-                            "at" => CQCode::At(cargs.get("qq").unwrap_or(&"0".to_string()).parse::<i64>().unwrap()),
-                            "rps" => CQCode::Sface(cargs.get("type").unwrap_or(&"0".to_string()).parse::<i32>().unwrap()),
+                            "face" => CQCode::Face(get_arg("id").parse::<i32>().unwrap()),
+                            "emoji" => CQCode::Emoji(get_arg("id").parse::<i32>().unwrap()),
+                            "bface" => CQCode::Bface(get_arg("id").parse::<i32>().unwrap()),
+                            "sface" => CQCode::Sface(get_arg("id").parse::<i32>().unwrap()),
+                            "image" => CQCode::Image(get_arg("file").clone()),
+                            "record" => CQCode::Record(get_arg("file").clone(), if get_arg("magic") == "true" { true } else { false }),
+                            "at" => CQCode::At(get_arg("qq").parse::<i64>().unwrap()),
+                            "rps" => CQCode::Sface(get_arg("type").parse::<i32>().unwrap()),
                             "shake" => CQCode::Shake(),
-                            "location" => CQCode::Location(cargs.get("lat").unwrap_or(&"0".to_string()).parse::<f32>().unwrap(), cargs.get("lon").unwrap_or(&"0".to_string()).parse::<f32>().unwrap(), cargs.get("title").unwrap_or(&"".to_string()).clone(), cargs.get("content").unwrap_or(&"".to_string()).clone()),
-                            "sign" => CQCode::Sign(cargs.get("location").unwrap_or(&"".to_string()).clone(), cargs.get("title").unwrap_or(&"".to_string()).clone(), cargs.get("image").unwrap_or(&"".to_string()).clone()),
-                            "share" => CQCode::Share(cargs.get("url").unwrap_or(&"".to_string()).clone(), cargs.get("title").unwrap_or(&"".to_string()).clone(), cargs.get("content").unwrap_or(&"".to_string()).clone(), cargs.get("image").unwrap_or(&"".to_string()).clone()),
+                            "location" => CQCode::Location(get_arg("lat").parse::<f32>().unwrap(), get_arg("lon").parse::<f32>().unwrap(), get_arg("title").clone(), get_arg("content").clone()),
+                            "sign" => CQCode::Sign(get_arg("location").clone(), get_arg("title").clone(), get_arg("image").clone()),
+                            "share" => CQCode::Share(get_arg("url").clone(), get_arg("title").clone(), get_arg("content").clone(), get_arg("image").clone()),
                             _ => CQCode::Unknown()
                         }
                     }
                     None => {
-                        return CQCode::Unknown();
+                        CQCode::Unknown()
                     }
                 }
             }).collect()

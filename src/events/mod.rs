@@ -33,7 +33,7 @@ pub use friend_add::*;
 pub use add_friend_request::*;
 pub use add_group_request::*;
 
-#[derive(Eq, PartialEq, Hash, Debug)]
+#[derive(Eq, PartialEq, Hash, Debug, Clone, Copy)]
 pub enum Events {
     Enable,
     Disable,

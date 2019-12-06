@@ -22,9 +22,7 @@ use listener::*;
 pub mod api;
 mod cqp;
 pub mod events;
-mod listener;
-
-pub use listener::register_listener;
+pub mod listener;
 
 use crate::api::Flag;
 use crate::qqtargets::{User, Group, File, Message};
