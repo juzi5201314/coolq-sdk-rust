@@ -46,6 +46,16 @@ macro_rules! utf8 {
     };
 }
 
+#[macro_export]
+macro_rules! register_listener {
+    ($event_type:expr, $callback:expr) => {
+        register_listener!($event_type, $callback, coolq_sdk_rust::listener::Priority::Medium);
+    };
+    ($event_type:expr, $callback:expr, $priority:expr) => {
+        coolq_sdk_rust::listener::register_listener($event_type, $callback, $priority);
+    };
+}
+
 static mut AUTH_CODE: i32 = -1;
 
 extern "stdcall" {

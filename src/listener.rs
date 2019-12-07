@@ -13,7 +13,7 @@ pub enum Priority {
 }
 
 lazy_static! {
-    static ref listeners: RwLock<HashMap<Events, HashMap<Priority, RwLock<Vec<fn(E: &mut dyn Event)>>>>> = RwLock::new(HashMap::new());
+    static ref listeners: RwLock<HashMap<Events, HashMap<Priority, RwLock<Vec<fn(&mut dyn Event)>>>>> = RwLock::new(HashMap::new());
 }
 
 pub fn register_listener<E>(event_type: Events, callback: fn(&mut E), priority: Priority) where E: Event {
