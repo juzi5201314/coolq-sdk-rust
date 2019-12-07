@@ -391,7 +391,7 @@ pub mod cqcode {
     use std::fs;
     use std::io::Write;
 
-    use crate::api::get_app_directory;
+    use crate::api::{get_app_directory, add_log, CQLogLevel};
 
     use regex::Regex;
     use std::collections::HashMap;
@@ -521,7 +521,9 @@ pub mod cqcode {
                         Ok(mut r) => {
                             r.copy_to(&mut b).unwrap_or_default();
                         },
-                        Err(_) => {}
+                        Err(e) => {
+                            add_log(CQLogLevel::ERROR, "error", e.to_string().as_str());
+                        }
                     };
                     f.write_all(b.as_slice()).unwrap();
                     f.flush().unwrap();
