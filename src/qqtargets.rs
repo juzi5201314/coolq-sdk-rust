@@ -517,7 +517,12 @@ pub mod cqcode {
                     let mut f = fs::File::create(data_dir.join(&filename)).unwrap();
                     let mut b: Vec<u8> = Vec::new();
                     //最多只能重定向10次，并在5秒之后超时
-                    reqwest::Client::builder().redirect(RedirectPolicy::limited(10)).timeout(Duration::from_secs(5)).build().unwrap().get(s.as_str()).send().unwrap().copy_to(&mut b).unwrap_or_default();
+                    match reqwest::Client::builder().redirect(RedirectPolicy::limited(10)).timeout(Duration::from_secs(5)).build().unwrap().get(s.as_str()).send() {
+                        Ok(mut r) => {
+                            r.copy_to(&mut b).unwrap_or_default();
+                        },
+                        Err(_) => {}
+                    };
                     f.write_all(b.as_slice()).unwrap();
                     f.flush().unwrap();
                     filename
