@@ -395,6 +395,8 @@ pub mod cqcode {
 
     use regex::Regex;
     use std::collections::HashMap;
+    use reqwest::RedirectPolicy;
+    use std::time::Duration;
 
     lazy_static! {
             static ref tag: Regex = Regex::new(r"\[CQ:([A-Za-z]*)(?:(,[^\[\]]+))?]").unwrap();
@@ -495,25 +497,28 @@ pub mod cqcode {
                     let filename = Path::new(s).file_name().unwrap();
                     fs::copy(s, data_dir.join(Path::new(filename))).unwrap();
                     filename.to_str().unwrap().to_string()
-                }
+                },
                 Image::Binary(b) => {
                     let filename = format!("{}.jpg", uuid::Uuid::new_v4());
                     let mut f = fs::File::create(data_dir.join(&filename)).unwrap();
                     f.write_all(b).unwrap();
                     f.flush().unwrap();
                     filename
-                }
+                },
                 Image::Base64(s) => {
                     let filename = format!("{}.jpg", uuid::Uuid::new_v4());
                     let mut f = fs::File::create(data_dir.join(&filename)).unwrap();
                     f.write_all(base64::decode(s.as_bytes()).unwrap().as_slice()).unwrap();
                     f.flush().unwrap();
                     filename
-                }
+                },
                 Image::Http(s) => {
                     let filename = format!("{}.jpg", uuid::Uuid::new_v4());
                     let mut f = fs::File::create(data_dir.join(&filename)).unwrap();
-                    f.write_all(reqwest::get(s.as_str()).unwrap().text().unwrap().as_bytes()).unwrap();
+                    let mut b: Vec<u8> = Vec::new();
+                    //最多只能重定向10次，并在5秒之后超时
+                    reqwest::Client::builder().redirect(RedirectPolicy::limited(10)).timeout(Duration::from_secs(5)).build().unwrap().get(s.as_str()).unwrap().copy_to(&mut b);
+                    f.write_all(b.as_slice()).unwrap();
                     f.flush().unwrap();
                     filename
                 }
