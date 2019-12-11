@@ -1,6 +1,7 @@
 use std::io::{Cursor, Read, Error};
 use std::default::Default;
 use std::ops::Add;
+use std::sync::RwLock;
 
 use byteorder::{BigEndian, ReadBytesExt};
 
@@ -270,12 +271,27 @@ impl Default for UserSex {
     }
 }
 
+#[derive(Debug, Clone, Ord, PartialOrd, Eq, PartialEq)]
+pub enum Authority {
+    Master = 0,
+    SuperAdmin = 1,
+    GroupLord = 2,
+    GroupAdmin = 3,
+    User = 4
+}
+
+lazy_static! {
+    static ref MasterList: RwLock<Vec<i64>> = RwLock::new(Vec::new());
+    static ref SuperAdminList: RwLock<Vec<i64>> = RwLock::new(Vec::new());
+}
+
 #[derive(Debug, Clone)]
 pub struct User {
     pub user_id: i64,
     pub nickname: String,
     pub sex: UserSex,
     pub age: i32,
+    authority: Authority
 }
 
 impl SendMessage for User {
@@ -285,10 +301,34 @@ impl SendMessage for User {
 }
 
 impl User {
+
+    pub fn add_master(user_id: i64) {
+        MasterList.write().unwrap().push(user_id);
+    }
+
+    pub fn add_super_admin(user_id: i64) {
+        SuperAdminList.write().unwrap().push(user_id);
+    }
+
     //为了防止获取频率过大，所有从事件获取到的User皆是从缓存取的。
     //如果想获得最新信息，请使用update。
     pub(crate) fn new(user_id: i64) -> User {
-        get_stranger_info(user_id, false)
+        let mut user = get_stranger_info(user_id, false);
+        if !SuperAdminList.read().unwrap().iter().all(|qq| *qq != user_id) {
+            user.set_authority(Authority::SuperAdmin);
+        }
+        if !MasterList.read().unwrap().iter().all(|qq| *qq != user_id) {
+            user.set_authority(Authority::Master);
+        }
+        user
+    }
+
+    pub(crate) fn set_authority(&mut self, authority: Authority) {
+        if !self.check_authority(&authority) { self.authority = authority }
+    }
+
+    pub fn check_authority(&self, authority: &Authority) -> bool  {
+        self.authority <= *authority
     }
 
     pub fn update(&mut self) {
@@ -302,6 +342,7 @@ impl User {
             nickname: b.read_string().unwrap(),
             sex: UserSex::from(b.read_i32::<BigEndian>().unwrap()),
             age: b.read_i32::<BigEndian>().unwrap(),
+            authority: Authority::User
         }
     }
 }
@@ -375,6 +416,10 @@ impl Message {
                 cqcodes: Vec::new(),
             }
         }
+    }
+
+    pub fn has_cqcode(&self) -> bool {
+        self.cqcodes.iter().count() != 0
     }
 
     //将因为防止与cq码混淆而转义的字符还原

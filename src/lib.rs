@@ -22,8 +22,8 @@ mod cqp;
 pub mod events;
 pub mod listener;
 
-use crate::api::Flag;
-use crate::qqtargets::{User, Group, File, Message};
+use crate::api::{Flag, get_group_member_info_v2};
+use crate::qqtargets::{User, Group, File, Message, Authority, GroupRole};
 
 pub mod qqtargets;
 
@@ -135,6 +135,12 @@ pub extern "stdcall" fn on_group_msg(
     msg: *const c_char,
     font: i32,
 ) -> i32 {
+    let mut user = User::new(user_id);
+    user.set_authority(match get_group_member_info_v2(group_id, user_id, false).role {
+        GroupRole::Owner => Authority::GroupLord,
+        GroupRole::Admin => Authority::GroupAdmin,
+        GroupRole::Member => Authority::User
+    });
     call_event(
         Events::GroupMessage,
         &mut GroupMessageEvent {
@@ -145,7 +151,7 @@ pub extern "stdcall" fn on_group_msg(
             msg: unsafe { Message::new(utf8!(msg)) },
             font: font,
             group: Group::new(group_id),
-            user: User::new(user_id),
+            user: user,
         },
     )
 }
