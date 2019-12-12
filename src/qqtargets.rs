@@ -310,6 +310,16 @@ impl User {
         SuperAdminList.write().unwrap().push(user_id);
     }
 
+    pub fn get_masters() -> Vec<i64> {
+        MasterList.read().unwrap().clone()
+    }
+
+    pub fn get_super_admins() -> Vec<i64> {
+        SuperAdminList.read().unwrap().clone()
+    }
+
+
+
     //为了防止获取频率过大，所有从事件获取到的User皆是从缓存取的。
     //如果想获得最新信息，请使用update。
     pub(crate) fn new(user_id: i64) -> User {
