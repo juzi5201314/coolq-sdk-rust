@@ -466,8 +466,8 @@ pub mod cqcode {
         Sface(i32),
         Image(String),
         Record(String, bool),
-        //At 如果为0，则为 @全体成员
         At(i64),
+        AtAll(),
         Rps(i32),
         //Dice(i32), 接收的骰子表情是一个sface。猜拳未试，估计也是。
         Shake(),
@@ -502,7 +502,7 @@ pub mod cqcode {
                             "sface" => CQCode::Sface(get_arg("id").parse::<i32>().unwrap()),
                             "image" => CQCode::Image(get_arg("file").clone()),
                             "record" => CQCode::Record(get_arg("file").clone(), if get_arg("magic") == "true" { true } else { false }),
-                            "at" => CQCode::At(get_arg("qq").parse::<i64>().unwrap_or(0)),
+                            "at" => if get_arg("qq").eq("all") { CQCode::AtAll() } else { CQCode::At(get_arg("qq").parse::<i64>().unwrap_or(0)) },
                             "rps" => CQCode::Sface(get_arg("type").parse::<i32>().unwrap()),
                             "shake" => CQCode::Shake(),
                             "location" => CQCode::Location(get_arg("lat").parse::<f32>().unwrap(), get_arg("lon").parse::<f32>().unwrap(), get_arg("title").clone(), get_arg("content").clone()),
