@@ -20,7 +20,7 @@ impl From<i32> for PrivateMessageType {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct PrivateMessageEvent {
     pub(crate) canceld: bool,
     pub sub_type: i32,
