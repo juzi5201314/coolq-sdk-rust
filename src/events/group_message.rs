@@ -3,7 +3,7 @@ use crate::qqtargets::{Group, User, cqcode, SendMessage, Anonymous, Message};
 use std::ops::Add;
 use crate::api::{delete_msg, Flag};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct GroupMessageEvent {
     pub(crate) canceld: bool,
     pub sub_type: i32,
