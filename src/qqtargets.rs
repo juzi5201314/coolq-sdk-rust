@@ -573,7 +573,7 @@ pub mod cqcode {
                     let mut f = fs::File::create(data_dir.join(&filename)).unwrap();
                     let mut b: Vec<u8> = Vec::new();
                     //最多只能重定向10次，并在5秒之后超时
-                    match reqwest::Client::builder().redirect(RedirectPolicy::limited(10)).timeout(Duration::from_secs(5)).build().unwrap().get(s.as_str()).send() {
+                    match reqwest::blocking::Client::builder().redirect(RedirectPolicy::limited(10)).timeout(Duration::from_secs(5)).build().unwrap().get(s.as_str()).send() {
                         Ok(mut r) => {
                             r.copy_to(&mut b).unwrap_or_default();
                         },
@@ -583,6 +583,54 @@ pub mod cqcode {
                     };
                     f.write_all(b.as_slice()).unwrap();
                     f.flush().unwrap();
+                    filename
+                }
+            }
+        }
+
+        pub(crate) async fn to_default_async(&self) -> String {
+            use async_std::fs;
+            use async_std::prelude::*;
+
+            let data_dir = get_app_directory();
+            //get_app_directory获取到的路径为 酷q目录\data\app\{appid} ，父目录的父目录则为 酷q目录\data。
+            let data_dir = Path::new(data_dir.as_str()).parent().unwrap().parent().unwrap().join(Path::new("image"));
+            match self {
+                Image::Default(s) => s.clone(),
+                Image::File(s) => {
+                    let filename = Path::new(s).file_name().unwrap();
+                    fs::copy(s, data_dir.join(Path::new(filename))).await.unwrap();
+                    filename.to_str().unwrap().to_string()
+                },
+                Image::Binary(b) => {
+                    let filename = format!("{}.jpg", uuid::Uuid::new_v4());
+                    let mut f = fs::File::create(data_dir.join(&filename)).await.unwrap();
+                    f.write_all(b).await.unwrap();
+                    f.flush().await;
+                    filename
+                },
+                Image::Base64(s) => {
+                    let filename = format!("{}.jpg", uuid::Uuid::new_v4());
+                    let mut f = fs::File::create(data_dir.join(&filename)).await.unwrap();
+                    f.write_all(base64::decode(s.as_bytes()).unwrap().as_slice()).await.unwrap();
+                    f.flush().await;
+                    filename
+                },
+                Image::Http(s) => {
+                    let filename = format!("{}.jpg", uuid::Uuid::new_v4());
+                    let mut f = fs::File::create(data_dir.join(&filename)).await.unwrap();
+                    let mut b: Vec<u8> = Vec::new();
+                    //最多只能重定向10次，并在5秒之后超时
+                    match reqwest::Client::builder().redirect(RedirectPolicy::limited(10)).timeout(Duration::from_secs(5)).build().unwrap().get(s.as_str()).send().await {
+                        Ok(mut r) => {
+                            b = r.bytes().await.unwrap().to_vec();
+                        },
+                        Err(e) => {
+                            add_log(CQLogLevel::ERROR, "error", e.to_string().as_str());
+                        }
+                    };
+                    f.write_all(b.as_slice()).await.unwrap();
+                    f.flush().await;
                     filename
                 }
             }
@@ -622,6 +670,10 @@ pub mod cqcode {
 
     pub fn image(image: Image) -> String {
         format!("[CQ:image,file={filename}]", filename = image.to_default())
+    }
+
+    pub async fn image_async(image: Image) -> String {
+        format!("[CQ:image,file={filename}]", filename = image.to_default_async().await)
     }
 
     pub fn record(filename: &str, magic: bool) -> String {
