@@ -13,6 +13,7 @@ use encoding::{EncoderTrap, DecoderTrap, Encoding};
 use encoding::all::GB18030;
 
 use std::os::raw::c_char;
+use std::convert::{TryInto, TryFrom};
 
 use events::*;
 use listener::*;
@@ -23,18 +24,9 @@ pub mod events;
 pub mod listener;
 
 use crate::api::{Flag, get_group_member_info_v2};
-use crate::qqtargets::{User, Group, File, Message, Authority, GroupRole};
+use crate::qqtargets::{User, Group, File, Message, Authority, GroupRole, GroupMember};
 
 pub mod qqtargets;
-
-#[macro_export]
-macro_rules! gb18030 {
-    ($e:expr) => {
-            CString::new(GB18030.encode($e, EncoderTrap::Ignore).unwrap())
-                .unwrap()
-                .into_raw()
-    };
-}
 
 #[macro_export]
 macro_rules! utf8 {
@@ -56,8 +48,6 @@ macro_rules! register_listener {
     };
 }
 
-static mut AUTH_CODE: i32 = -1;
-
 extern "stdcall" {
     pub fn LoadLibraryA(lp_module_name: *const u8) -> *const usize;
     pub fn GetProcAddress(h_module: *const usize, lp_proc_name: *const u8) -> *const usize;
@@ -69,7 +59,7 @@ pub unsafe extern "stdcall" fn app_info() -> *const c_char {
         fn app_info() -> (usize, String);
     }
     let (version, appid) = app_info();
-    gb18030!(format!("{},{}", version, appid).as_str())
+    crate::api::Convert::from(format!("{},{}", version, appid).as_str()).into()
 }
 
 #[export_name = "Initialize"]
@@ -77,8 +67,7 @@ pub unsafe extern "stdcall" fn initialize(auth_code: i32) -> i32 {
     extern "Rust" {
         fn main();
     }
-    AUTH_CODE = auth_code;
-    api::init();
+    api::init(auth_code);
     main();
     0
 }
@@ -136,7 +125,7 @@ pub extern "stdcall" fn on_group_msg(
     font: i32,
 ) -> i32 {
     let mut user = User::new(user_id);
-    user.set_authority(match get_group_member_info_v2(group_id, user_id, false).role {
+    user.set_authority(match GroupMember::try_from(get_group_member_info_v2(group_id, user_id, false)).unwrap().role {
         GroupRole::Owner => Authority::GroupLord,
         GroupRole::Admin => Authority::GroupAdmin,
         GroupRole::Member => Authority::User

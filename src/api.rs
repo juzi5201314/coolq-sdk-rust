@@ -1,13 +1,220 @@
 use std::mem;
 
+use std::ffi::{CString, CStr};
+use encoding::{EncoderTrap, DecoderTrap, Encoding};
+use encoding::all::GB18030;
+
 use crate::cqp;
 #[macro_use]
 use super::*;
 use crate::qqtargets::{Group, read_multi_object, GroupMember};
 
-extern "stdcall" {
-    fn LoadLibraryA(lp_module_name: *const u8) -> *const usize;
-    fn GetProcAddress(h_module: *const usize, lp_proc_name: *const u8) -> *const usize;
+use once_cell::sync::OnceCell;
+use std::convert::TryFrom;
+
+static AUTH_CODE: OnceCell<i32> = OnceCell::new();
+
+macro_rules! gb18030 {
+    ($str: expr) => {
+        CString::new(GB18030.encode($str, EncoderTrap::Ignore).unwrap()).unwrap().into_raw()
+    };
+}
+
+macro_rules! utf8 {
+    ($c_char:expr) => {
+        unsafe {
+            GB18030.decode(CStr::from_ptr($c_char).to_bytes(), DecoderTrap::Ignore).unwrap()[..].to_string()
+        }
+    };
+}
+
+macro_rules! gen_api_func {
+    ($cq_func: ident, $func: ident, $($arg: ident: $t: ty),* => $result_t: ty) => {
+        static $cq_func: OnceCell<extern "stdcall" fn(i32, $($t),*) -> $result_t> = OnceCell::new();
+        paste::item! {
+            pub fn $func<$([<$arg _T>]: Into<Convert<$t>>,)*>($($arg: [<$arg _T>]),*) -> Convert<$result_t> {
+                ($cq_func.get().unwrap())(AUTH_CODE.get().unwrap().clone(), $($arg.into().into()),*).into()
+            }
+        }
+    };
+}
+
+macro_rules! gen_api_funcs {
+    ($(($cq_func: ident, $func: ident, $($arg: ident: $t: ty),* => $result_t: ty)),*) => {
+        $(gen_api_func!($cq_func, $func, $($arg: $t),* => $result_t);)*
+        fn init_api_funcs(lib: libloading::Library) {
+            unsafe {
+                $($cq_func.set(*lib.get(stringify!($cq_func).as_bytes()).unwrap());)*
+            }
+        }
+    };
+}
+
+gen_api_funcs!(
+    (CQ_sendPrivateMsg, send_private_msg, user_id: i64, msg: *const c_char => i32),
+    (CQ_sendGroupMsg, send_group_msg, group_id: i64, msg: *const c_char => i32),
+    (CQ_sendDiscussMsg, send_discuss_msg, discuss_id: i64, msg: *const c_char => i32),
+    (CQ_deleteMsg, delete_msg, message_id: i32 => i32),
+    (CQ_sendLikeV2, send_like_v2, user_id: i64, times: i32 => i32),
+    (CQ_setGroupKick, set_group_kick, group_id: i64, user_id: i64, refuse_rejoin: i32 => i32),
+    (CQ_setGroupBan, set_group_ban, group_id: i64, user_id: i64, time: i64 => i32),
+    (CQ_setGroupAdmin, set_group_admin, group_id: i64, user_id: i64, set_admin: i32 => i32),
+    (CQ_setGroupSpecialTitle, set_group_special_title, group_id: i64, user_id: i64, title: *const c_char, time: i64 => i32),
+    (CQ_setGroupWholeBan, set_group_whole_ban, group_id: i64, enable: i32 => i32),
+    (CQ_setGroupAnonymousBan, set_group_anonymous_ban, group_id: i64, anonymous_name: *const c_char, time: i64 => i32),
+    (CQ_setGroupAnonymous, set_group_anonymous, group_id: i64, enable: i32 => i32),
+    (CQ_setGroupCard, set_group_card, group_id: i64, user_id: i64, card: *const c_char => i32),
+    (CQ_setGroupLeave, set_group_leave, group_id: i64, is_dismiss: i32 => i32),
+    (CQ_setDiscussLeave, set_discuss_leave, discuss_id: i64 => i32),
+    (CQ_setFriendAddRequest, set_friend_add_request, flag: *const c_char, response: i32, comment: *const c_char => i32),
+    (CQ_setGroupAddRequestV2, set_group_add_request_v2, flag: *const c_char, request: i32, response: i32, reason: *const c_char => i32),
+    (CQ_getGroupMemberInfoV2, get_group_member_info_v2, group_id: i64, user_id: i64, no_cache: i32 => *const c_char),
+    (CQ_getGroupMemberList, get_group_member_list, group_id: i64 => *const c_char),
+    (CQ_getGroupList, get_group_list, => *const c_char),
+    (CQ_getFriendList, get_friend_list, => *const c_char),
+    (CQ_getStrangerInfo, get_stranger_info, user_id: i64, no_cache: i32 => *const c_char),
+    (CQ_addLog, add_log, priority: i32, tag: *const c_char, msg: *const c_char => i32),
+    (CQ_getCookies, get_cookies, => *const c_char),
+    (CQ_getCookiesV2, get_cookies_v2, => *const c_char),
+    (CQ_getCsrfToken, get_csrf_token, => *const c_char),
+    (CQ_getLoginQQ, get_login_qq, => i64),
+    (CQ_getLoginNick, get_login_nick, => *const c_char),
+    (CQ_getAppDirectory, get_app_directory, => *const c_char),
+    (CQ_setFatal, set_fatal, error_message: *const c_char => *const c_char),
+    (CQ_getRecordV2, get_record_v2, file_name: *const c_char, outformat: *const c_char => *const c_char),
+    (CQ_canSendImage, can_send_image, => bool),
+    (CQ_canSendRecord, can_send_record, => bool),
+    (CQ_getImage, get_image, file_name: *const c_char => *const c_char),
+    (CQ_getGroupInfo, get_group_info, group_id: i64, no_cache: i32 => *const c_char)
+);
+
+pub struct Convert<T>(T);
+
+impl From<i64> for Convert<i64> {
+    fn from(i: i64) -> Self {
+        Convert { 0: i }
+    }
+}
+
+impl From<i32> for Convert<i32> {
+    fn from(i: i32) -> Self {
+        Convert { 0: i }
+    }
+}
+
+impl From<&str> for Convert<*const c_char> {
+    fn from(str: &str) -> Self {
+        Convert { 0: gb18030!(str) }
+    }
+}
+
+impl From<String> for Convert<*const c_char> {
+    fn from(str: String) -> Self {
+        Convert { 0: gb18030!(str.as_ref()) }
+    }
+}
+
+impl From<CQLogLevel> for Convert<i32> {
+    fn from(level: CQLogLevel) -> Self {
+        Convert { 0: match level {
+            CQLogLevel::DEBUG => cqp::CQLOG_DEBUG,
+            CQLogLevel::INFO => cqp::CQLOG_INFO,
+            CQLogLevel::INFOSUCCESS => cqp::CQLOG_INFOSUCCESS,
+            CQLogLevel::INFORECV => cqp::CQLOG_INFORECV,
+            CQLogLevel::INFOSEND => cqp::CQLOG_INFOSEND,
+            CQLogLevel::WARNING => cqp::CQLOG_WARNING,
+            CQLogLevel::ERROR => cqp::CQLOG_ERROR,
+            CQLogLevel::FATAL => cqp::CQLOG_FATAL,
+        }}
+    }
+}
+
+impl From<bool> for Convert<i32> {
+    fn from(b: bool) -> Self {
+        Convert::from(b as i32)
+    }
+}
+
+impl From<bool> for Convert<bool> {
+    fn from(b: bool) -> Self {
+        Convert { 0: b }
+    }
+}
+
+impl From<*const c_char> for Convert<*const c_char> {
+    fn from(c_char: *const c_char) -> Self {
+        Convert { 0: c_char }
+    }
+}
+
+impl From<Convert<i64>> for i64 {
+    fn from(c: Convert<i64>) -> Self {
+        c.0
+    }
+}
+
+impl From<Convert<i32>> for i32 {
+    fn from(c: Convert<i32>) -> Self {
+        c.0
+    }
+}
+
+impl From<Convert<*const c_char>> for *const c_char {
+    fn from(c: Convert<*const c_char>) -> Self {
+        c.0
+    }
+}
+
+impl From<Convert<*const c_char>> for String {
+    fn from(c: Convert<*const c_char>) -> Self {
+        utf8!(c.0)
+    }
+}
+
+impl From<Convert<i32>> for bool {
+    fn from(c: Convert<i32>) -> Self {
+        c.0 != 0
+    }
+}
+
+impl TryFrom<Convert<*const c_char>> for GroupMember {
+    type Error = std::io::Error;
+
+    fn try_from(value: Convert<*const c_char>) -> Result<Self, Self::Error> {
+        GroupMember::decode(base64::decode(String::from(value).as_bytes()).unwrap())
+    }
+}
+
+impl TryFrom<Convert<*const c_char>> for Group {
+    type Error = std::io::Error;
+
+    fn try_from(value: Convert<*const c_char>) -> Result<Self, Self::Error> {
+        Group::decode(base64::decode(String::from(value).as_bytes()).unwrap())
+    }
+}
+
+impl TryFrom<Convert<*const c_char>> for Vec<Group> {
+    type Error = std::io::Error;
+
+    fn try_from(value: Convert<*const c_char>) -> Result<Self, Self::Error> {
+        read_multi_object(base64::decode(String::from(value).as_bytes()).unwrap()).and_then(|objs| objs.iter().map(|b| Group::decode_base(b.clone())).collect())
+    }
+}
+
+impl TryFrom<Convert<*const c_char>> for Vec<GroupMember> {
+    type Error = std::io::Error;
+
+    fn try_from(value: Convert<*const c_char>) -> Result<Self, Self::Error> {
+        read_multi_object(base64::decode(String::from(value).as_bytes()).unwrap()).and_then(|objs| objs.iter().map(|b| GroupMember::decode(b.clone())).collect())
+    }
+}
+
+impl TryFrom<Convert<*const c_char>> for User {
+    type Error = std::io::Error;
+
+    fn try_from(value: Convert<*const c_char>) -> Result<Self, Self::Error> {
+        User::decode(base64::decode(String::from(value).as_bytes()).unwrap())
+    }
 }
 
 pub enum CQLogLevel {
@@ -23,391 +230,7 @@ pub enum CQLogLevel {
 
 pub type Flag = String;
 
-static mut SEND_PRIVATE_MSG: Option<cqp::CQ_sendPrivateMsg> = None;
-static mut SEND_GROUP_MSG: Option<cqp::CQ_sendGroupMsg> = None;
-static mut SEND_DISCUSS_MSG: Option<cqp::CQ_sendDiscussMsg> = None;
-
-static mut SEND_LIKE: Option<cqp::CQ_sendLike> = None;
-static mut SEND_LIKE_V2: Option<cqp::CQ_sendLikeV2> = None;
-
-static mut SET_GROUP_KICK: Option<cqp::CQ_setGroupKick> = None;
-static mut SET_GROUP_BAN: Option<cqp::CQ_setGroupBan> = None;
-static mut SET_GROUP_ADMIN: Option<cqp::CQ_setGroupAdmin> = None;
-static mut SET_GROUP_SPECIAL_TITLE: Option<cqp::CQ_setGroupSpecialTitle> = None;
-static mut SET_GROUP_WHOLE_BAN: Option<cqp::CQ_setGroupWholeBan> = None;
-static mut SET_GROUP_ANONYMOUS_BAN: Option<cqp::CQ_setGroupAnonymousBan> = None;
-static mut SET_GROUP_ANONYMOUS: Option<cqp::CQ_setGroupAnonymous> = None;
-static mut SET_GROUP_CARD: Option<cqp::CQ_setGroupCard> = None;
-static mut SET_GROUP_LEAVE: Option<cqp::CQ_setGroupLeave> = None;
-static mut SET_GROUP_ADD_REQUEST_V2: Option<cqp::CQ_setGroupAddRequestV2> = None;
-static mut GET_GROUP_MEMBER_INFO_V2: Option<cqp::CQ_getGroupMemberInfoV2> = None;
-static mut GET_GROUP_MEMBER_LIST: Option<cqp::CQ_getGroupMemberList> = None;
-static mut GET_GROUP_LIST: Option<cqp::CQ_getGroupList> = None;
-static mut GET_GROUP_INFO: Option<cqp::CQ_getGroupInfo> = None;
-
-static mut SET_DISCUSS_LEAVE: Option<cqp::CQ_setDiscussLeave> = None;
-static mut SET_FRIEND_ADD_REQUEST: Option<cqp::CQ_setFriendAddRequest> = None;
-static mut GET_STRANGER_INFO: Option<cqp::CQ_getStrangerInfo> = None;
-static mut ADD_LOG: Option<cqp::CQ_addLog> = None;
-static mut GET_COOKIES: Option<cqp::CQ_getCookies> = None;
-static mut GET_COOKIES_V2: Option<cqp::CQ_getCookiesV2> = None;
-static mut GET_CSRF_TOKEN: Option<cqp::CQ_getCsrfToken> = None;
-static mut GET_LOGIN_QQ: Option<cqp::CQ_getLoginQQ> = None;
-static mut GET_LOGIN_NICK: Option<cqp::CQ_getLoginNick> = None;
-static mut GET_APP_DIRECTORY: Option<cqp::CQ_getAppDirectory> = None;
-static mut SET_FATAL: Option<cqp::CQ_setFatal> = None;
-static mut GET_RECORD: Option<cqp::CQ_getRecord> = None;
-static mut DELETE_MSG: Option<cqp::CQ_deleteMsg> = None;
-static mut GET_RECORD_V2: Option<cqp::CQ_getRecordV2> = None;
-static mut GET_IMAGE: Option<cqp::CQ_getImage> = None;
-static mut CAN_SEND_RECORD: Option<cqp::CQ_canSendRecord> = None;
-static mut CAN_SEND_IMAGE: Option<cqp::CQ_canSendImage> = None;
-static mut GET_FRIEND_LIST: Option<cqp::CQ_getFriendList> = None;
-
-pub(crate) unsafe fn init() {
-    let m = LoadLibraryA(b"CQP.dll\0".as_ptr() as *const u8);
-    SEND_PRIVATE_MSG = Some(mem::transmute::<*const usize, cqp::CQ_sendPrivateMsg>(
-        GetProcAddress(m, b"CQ_sendPrivateMsg\0".as_ptr() as *const u8),
-    ));
-    SEND_GROUP_MSG = Some(mem::transmute::<*const usize, cqp::CQ_sendGroupMsg>(
-        GetProcAddress(m, b"CQ_sendGroupMsg\0".as_ptr() as *const u8),
-    ));
-    SEND_DISCUSS_MSG = Some(mem::transmute::<*const usize, cqp::CQ_sendDiscussMsg>(
-        GetProcAddress(m, b"CQ_sendDiscussMsg\0".as_ptr() as *const u8),
-    ));
-
-    SEND_LIKE = Some(mem::transmute::<*const usize, cqp::CQ_sendLike>(
-        GetProcAddress(m, b"CQ_sendLike\0".as_ptr() as *const u8),
-    ));
-    SEND_LIKE_V2 = Some(mem::transmute::<*const usize, cqp::CQ_sendLikeV2>(
-        GetProcAddress(m, b"CQ_sendLikeV2\0".as_ptr() as *const u8),
-    ));
-
-    SET_GROUP_KICK = Some(mem::transmute::<*const usize, cqp::CQ_setGroupKick>(
-        GetProcAddress(m, b"CQ_setGroupKick\0".as_ptr() as *const u8),
-    ));
-    SET_GROUP_BAN = Some(mem::transmute::<*const usize, cqp::CQ_setGroupBan>(
-        GetProcAddress(m, b"CQ_setGroupBan\0".as_ptr() as *const u8),
-    ));
-    SET_GROUP_ADMIN = Some(mem::transmute::<*const usize, cqp::CQ_setGroupAdmin>(
-        GetProcAddress(m, b"CQ_setGroupAdmin\0".as_ptr() as *const u8),
-    ));
-    SET_GROUP_SPECIAL_TITLE = Some(
-        mem::transmute::<*const usize, cqp::CQ_setGroupSpecialTitle>(GetProcAddress(
-            m,
-            b"CQ_setGroupSpecialTitle\0".as_ptr() as *const u8,
-        )),
-    );
-    SET_GROUP_WHOLE_BAN = Some(mem::transmute::<*const usize, cqp::CQ_setGroupWholeBan>(
-        GetProcAddress(m, b"CQ_setGroupWholeBan\0".as_ptr() as *const u8),
-    ));
-    SET_GROUP_ANONYMOUS_BAN = Some(
-        mem::transmute::<*const usize, cqp::CQ_setGroupAnonymousBan>(GetProcAddress(
-            m,
-            b"CQ_setGroupAnonymousBan\0".as_ptr() as *const u8,
-        )),
-    );
-    SET_GROUP_ANONYMOUS = Some(mem::transmute::<*const usize, cqp::CQ_setGroupAnonymous>(
-        GetProcAddress(m, b"CQ_setGroupAnonymous\0".as_ptr() as *const u8),
-    ));
-    SET_GROUP_CARD = Some(mem::transmute::<*const usize, cqp::CQ_setGroupCard>(
-        GetProcAddress(m, b"CQ_setGroupCard\0".as_ptr() as *const u8),
-    ));
-    SET_GROUP_LEAVE = Some(mem::transmute::<*const usize, cqp::CQ_setGroupLeave>(
-        GetProcAddress(m, b"CQ_setGroupLeave\0".as_ptr() as *const u8),
-    ));
-    SET_GROUP_ADD_REQUEST_V2 = Some(
-        mem::transmute::<*const usize, cqp::CQ_setGroupAddRequestV2>(GetProcAddress(
-            m,
-            b"CQ_setGroupAddRequestV2\0".as_ptr() as *const u8,
-        )),
-    );
-    GET_GROUP_MEMBER_INFO_V2 = Some(
-        mem::transmute::<*const usize, cqp::CQ_getGroupMemberInfoV2>(GetProcAddress(
-            m,
-            b"CQ_getGroupMemberInfoV2\0".as_ptr() as *const u8,
-        )),
-    );
-    GET_GROUP_MEMBER_LIST = Some(mem::transmute::<*const usize, cqp::CQ_getGroupMemberList>(
-        GetProcAddress(m, b"CQ_getGroupMemberList\0".as_ptr() as *const u8),
-    ));
-    GET_GROUP_LIST = Some(mem::transmute::<*const usize, cqp::CQ_getGroupList>(
-        GetProcAddress(m, b"CQ_getGroupList\0".as_ptr() as *const u8),
-    ));
-
-    SET_DISCUSS_LEAVE = Some(mem::transmute::<*const usize, cqp::CQ_setDiscussLeave>(
-        GetProcAddress(m, b"CQ_setDiscussLeave\0".as_ptr() as *const u8),
-    ));
-    SET_FRIEND_ADD_REQUEST = Some(mem::transmute::<*const usize, cqp::CQ_setFriendAddRequest>(
-        GetProcAddress(m, b"CQ_setFriendAddRequest\0".as_ptr() as *const u8),
-    ));
-    GET_STRANGER_INFO = Some(mem::transmute::<*const usize, cqp::CQ_getStrangerInfo>(
-        GetProcAddress(m, b"CQ_getStrangerInfo\0".as_ptr() as *const u8),
-    ));
-    ADD_LOG = Some(mem::transmute::<*const usize, cqp::CQ_addLog>(
-        GetProcAddress(m, b"CQ_addLog\0".as_ptr() as *const u8),
-    ));
-    GET_COOKIES = Some(mem::transmute::<*const usize, cqp::CQ_getCookies>(
-        GetProcAddress(m, b"CQ_getCookies\0".as_ptr() as *const u8),
-    ));
-    GET_COOKIES_V2 = Some(mem::transmute::<*const usize, cqp::CQ_getCookiesV2>(
-        GetProcAddress(m, b"CQ_getCookiesV2\0".as_ptr() as *const u8),
-    ));
-    GET_CSRF_TOKEN = Some(mem::transmute::<*const usize, cqp::CQ_getCsrfToken>(
-        GetProcAddress(m, b"CQ_getCsrfToken\0".as_ptr() as *const u8),
-    ));
-    GET_LOGIN_QQ = Some(mem::transmute::<*const usize, cqp::CQ_getLoginQQ>(
-        GetProcAddress(m, b"CQ_getLoginQQ\0".as_ptr() as *const u8),
-    ));
-    GET_LOGIN_NICK = Some(mem::transmute::<*const usize, cqp::CQ_getLoginNick>(
-        GetProcAddress(m, b"CQ_getLoginNick\0".as_ptr() as *const u8),
-    ));
-    GET_APP_DIRECTORY = Some(mem::transmute::<*const usize, cqp::CQ_getAppDirectory>(
-        GetProcAddress(m, b"CQ_getAppDirectory\0".as_ptr() as *const u8),
-    ));
-    SET_FATAL = Some(mem::transmute::<*const usize, cqp::CQ_setFatal>(
-        GetProcAddress(m, b"CQ_setFatal\0".as_ptr() as *const u8),
-    ));
-    GET_RECORD = Some(mem::transmute::<*const usize, cqp::CQ_getRecord>(
-        GetProcAddress(m, b"CQ_getRecord\0".as_ptr() as *const u8),
-    ));
-    DELETE_MSG = Some(mem::transmute::<*const usize, cqp::CQ_deleteMsg>(
-        GetProcAddress(m, b"CQ_deleteMsg\0".as_ptr() as *const u8),
-    ));
-    GET_RECORD_V2 = Some(mem::transmute::<*const usize, cqp::CQ_getRecordV2>(
-        GetProcAddress(m, b"CQ_getRecordV2\0".as_ptr() as *const u8),
-    ));
-    GET_IMAGE = Some(mem::transmute::<*const usize, cqp::CQ_getImage>(
-        GetProcAddress(m, b"CQ_getImage\0".as_ptr() as *const u8),
-    ));
-    CAN_SEND_RECORD = Some(mem::transmute::<*const usize, cqp::CQ_canSendRecord>(
-        GetProcAddress(m, b"CQ_canSendRecord\0".as_ptr() as *const u8),
-    ));
-    CAN_SEND_IMAGE = Some(mem::transmute::<*const usize, cqp::CQ_canSendImage>(
-        GetProcAddress(m, b"CQ_canSendImage\0".as_ptr() as *const u8),
-    ));
-    GET_GROUP_INFO = Some(mem::transmute::<*const usize, cqp::CQ_getGroupInfo>(
-        GetProcAddress(m, b"CQ_getGroupInfo\0".as_ptr() as *const u8),
-    ));
-    GET_FRIEND_LIST = Some(mem::transmute::<*const usize, cqp::CQ_getFriendList>(
-        GetProcAddress(m, b"CQ_getFriendList\0".as_ptr() as *const u8),
-    ));
-}
-
-pub fn send_private_msg(user_id: i64, msg: &str) -> i32 {
-    unsafe { SEND_PRIVATE_MSG.unwrap()(AUTH_CODE, user_id, gb18030!(msg)) }
-}
-
-pub fn send_group_msg(group_id: i64, msg: &str) -> i32 {
-    unsafe { SEND_GROUP_MSG.unwrap()(AUTH_CODE, group_id, gb18030!(msg)) }
-}
-
-pub fn send_discuss_msg(discuss_id: i64, msg: &str) -> i32 {
-    unsafe { SEND_DISCUSS_MSG.unwrap()(AUTH_CODE, discuss_id, gb18030!(msg)) }
-}
-
-pub fn send_like(user_id: i64) -> i32 {
-    unsafe { SEND_LIKE.unwrap()(AUTH_CODE, user_id) }
-}
-
-pub fn send_like_v2(user_id: i64, times: i32) -> i32 {
-    unsafe { SEND_LIKE_V2.unwrap()(AUTH_CODE, user_id, times) }
-}
-
-pub fn set_group_kick(group_id: i64, user_id: i64, refuse_rejoin: bool) -> i32 {
-    unsafe { SET_GROUP_KICK.unwrap()(AUTH_CODE, group_id, user_id, refuse_rejoin as i32) }
-}
-
-pub fn set_group_ban(group_id: i64, user_id: i64, time: i64) -> i32 {
-    unsafe { SET_GROUP_BAN.unwrap()(AUTH_CODE, group_id, user_id, time) }
-}
-
-pub fn set_group_admin(group_id: i64, user_id: i64, set_admin: bool) -> i32 {
-    unsafe { SET_GROUP_ADMIN.unwrap()(AUTH_CODE, group_id, user_id, set_admin as i32) }
-}
-
-pub fn set_group_special_title(group_id: i64, user_id: i64, title: &str, time: i64) -> i32 {
-    unsafe { SET_GROUP_SPECIAL_TITLE.unwrap()(AUTH_CODE, group_id, user_id, gb18030!(title), time) }
-}
-
-pub fn set_group_whole_ban(group_id: i64, enable: bool) -> i32 {
-    unsafe { SET_GROUP_WHOLE_BAN.unwrap()(AUTH_CODE, group_id, enable as i32) }
-}
-
-pub fn set_group_anonymous_ban(group_id: i64, anonymous_flag: Flag, time: i64) -> i32 {
-    unsafe { SET_GROUP_ANONYMOUS_BAN.unwrap()(AUTH_CODE, group_id, gb18030!(anonymous_flag.as_str()), time) }
-}
-
-pub fn set_group_anonymous(group_id: i64, enable: bool) -> i32 {
-    unsafe { SET_GROUP_ANONYMOUS.unwrap()(AUTH_CODE, group_id, enable as i32) }
-}
-
-pub fn set_group_card(group_id: i64, user_id: i64, card: &str) -> i32 {
-    unsafe { SET_GROUP_CARD.unwrap()(AUTH_CODE, group_id, user_id, gb18030!(card)) }
-}
-
-pub fn set_group_leave(group_id: i64, is_dismiss: bool) -> i32 {
-    unsafe { SET_GROUP_LEAVE.unwrap()(AUTH_CODE, group_id, is_dismiss as i32) }
-}
-
-pub fn set_group_add_request_v2(flag: Flag, request_type: i32, approve: bool, reason: &str) -> i32 {
-    unsafe {
-        SET_GROUP_ADD_REQUEST_V2.unwrap()(
-            AUTH_CODE,
-            gb18030!(flag.as_str()),
-            request_type,
-            approve as i32,
-            gb18030!(reason),
-        )
-    }
-}
-
-pub fn get_group_member_info_v2(group_id: i64, user_id: i64, no_cache: bool) -> GroupMember {
-    unsafe {
-        GroupMember::decode(base64::decode(utf8!(GET_GROUP_MEMBER_INFO_V2.unwrap()(
-            AUTH_CODE,
-            group_id,
-            user_id,
-            no_cache as i32
-        )).as_bytes()).unwrap())
-    }
-}
-
-pub fn get_group_member_list(group_id: i64) -> Vec<GroupMember> {
-    unsafe {
-        read_multi_object(utf8!(GET_GROUP_MEMBER_LIST.unwrap()(AUTH_CODE, group_id)).as_bytes().to_vec()).into_iter().map(|v| {
-            GroupMember::decode(v)
-        }).collect()
-    }
-}
-
-pub fn get_group_list() -> Vec<Group> {
-    unsafe {
-        read_multi_object(utf8!(GET_GROUP_LIST.unwrap()(AUTH_CODE)).as_bytes().to_vec()).into_iter().map(|v| {
-            Group::decode_base(v)
-        }).collect()
-    }
-}
-
-pub fn set_discuss_leave(discussio_id: i64) -> i32 {
-    unsafe { SET_DISCUSS_LEAVE.unwrap()(AUTH_CODE, discussio_id) }
-}
-
-pub fn set_friend_add_request(flag: Flag, approve: bool, comment: &str) -> i32 {
-    unsafe {
-        SET_FRIEND_ADD_REQUEST.unwrap()(
-            AUTH_CODE,
-            gb18030!(flag.as_str()),
-            approve as i32,
-            gb18030!(comment),
-        )
-    }
-}
-
-pub fn get_stranger_info(user_id: i64, no_cache: bool) -> User {
-    unsafe {
-        User::decode(utf8!(GET_STRANGER_INFO.unwrap()(
-            AUTH_CODE,
-            user_id,
-            no_cache as i32
-        )).as_bytes().to_vec())
-    }
-}
-
-pub fn add_log(priority: CQLogLevel, tag: &str, msg: &str) -> i32 {
-    unsafe {
-        ADD_LOG.unwrap()(
-            AUTH_CODE,
-            match priority {
-                CQLogLevel::DEBUG => cqp::CQLOG_DEBUG,
-                CQLogLevel::INFO => cqp::CQLOG_INFO,
-                CQLogLevel::INFOSUCCESS => cqp::CQLOG_INFOSUCCESS,
-                CQLogLevel::INFORECV => cqp::CQLOG_INFORECV,
-                CQLogLevel::INFOSEND => cqp::CQLOG_INFOSEND,
-                CQLogLevel::WARNING => cqp::CQLOG_WARNING,
-                CQLogLevel::ERROR => cqp::CQLOG_ERROR,
-                CQLogLevel::FATAL => cqp::CQLOG_FATAL,
-            },
-            gb18030!(tag),
-            gb18030!(msg),
-        )
-    }
-}
-
-pub fn get_cookies() -> String {
-    unsafe { utf8!(GET_COOKIES.unwrap()(AUTH_CODE)) }
-}
-
-pub fn get_cookies_v2(domain: &str) -> String {
-    unsafe { utf8!(GET_COOKIES_V2.unwrap()(AUTH_CODE, gb18030!(domain))) }
-}
-
-pub fn get_csrf_token() -> i32 {
-    unsafe { GET_CSRF_TOKEN.unwrap()(AUTH_CODE) }
-}
-
-pub fn get_login_qq() -> i64 {
-    unsafe { GET_LOGIN_QQ.unwrap()(AUTH_CODE) }
-}
-
-pub fn get_login_nick() -> String {
-    unsafe { utf8!(GET_LOGIN_NICK.unwrap()(AUTH_CODE)) }
-}
-
-pub fn get_app_directory() -> String {
-    unsafe { utf8!(GET_APP_DIRECTORY.unwrap()(AUTH_CODE)) }
-}
-
-pub fn delete_msg(message_id: i32) -> i32 {
-    unsafe { DELETE_MSG.unwrap()(AUTH_CODE, message_id) }
-}
-
-pub fn set_fatal(error_message: &str) -> i32 {
-    unsafe { SET_FATAL.unwrap()(AUTH_CODE, gb18030!(error_message)) }
-}
-
-pub fn get_record(file: &str, outformat: &str) -> String {
-    unsafe {
-        utf8!(GET_RECORD.unwrap()(
-            AUTH_CODE,
-            gb18030!(file),
-            gb18030!(outformat)
-        ))
-    }
-}
-
-pub fn get_record_v2(file: &str, outformat: &str) -> String {
-    unsafe {
-        utf8!(GET_RECORD_V2.unwrap()(
-            AUTH_CODE,
-            gb18030!(file),
-            gb18030!(outformat)
-        ))
-    }
-}
-
-pub fn can_send_image() -> bool {
-    unsafe { CAN_SEND_IMAGE.unwrap()(AUTH_CODE) }
-}
-
-pub fn can_send_record() -> bool {
-    unsafe { CAN_SEND_RECORD.unwrap()(AUTH_CODE) }
-}
-
-pub fn get_image(file: &str) -> String {
-    unsafe { utf8!(GET_IMAGE.unwrap()(AUTH_CODE, gb18030!(file))) }
-}
-
-pub fn get_group_info(group_id: i64, no_cache: bool) -> Group {
-    unsafe {
-        Group::decode(utf8!(GET_GROUP_INFO.unwrap()(
-            AUTH_CODE,
-            group_id,
-            no_cache as i32
-        )).as_bytes().to_vec())
-    }
-}
-
-pub fn get_friend_list(reserved: bool) -> String {
-    unsafe { utf8!(GET_FRIEND_LIST.unwrap()(AUTH_CODE, reserved as i32)) }
+pub(crate) unsafe fn init(auth_code: i32) {
+    AUTH_CODE.set(auth_code).unwrap();
+    init_api_funcs(libloading::Library::new("cqp.dll").unwrap());
 }

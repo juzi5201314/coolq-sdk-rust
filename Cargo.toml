@@ -7,13 +7,15 @@ edition = "2018"
 [dependencies]
 encoding = "0.2.33"
 lazy_static = "1.2.0"
-#dirmod = "0.2.0-alpha.1"
 base64 = "0.11.0"
 byteorder = "1.3.2"
 uuid = { version = "0.8.1", features = ["v4"] }
 reqwest = { version = "0.10.0-alpha.2", features = ["blocking"] }
 regex = "1.3.1"
 async-std = { version = "1.3.0", default-features = false, features = ["std", "default"] }
+libloading = "0.5"
+once_cell = "1.3.1"
+paste = "0.1.6"
 
 [profile.release]
 opt-level = 3
