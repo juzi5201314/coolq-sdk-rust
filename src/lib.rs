@@ -23,8 +23,9 @@ mod cqp;
 pub mod events;
 pub mod listener;
 
-use crate::api::{Flag, get_group_member_info_v2};
+use crate::api::{Flag, get_group_member_info_v2, set_fatal};
 use crate::qqtargets::{User, Group, File, Message, Authority, GroupRole, GroupMember};
+use std::panic::set_hook;
 
 pub mod qqtargets;
 
@@ -67,6 +68,7 @@ pub unsafe extern "stdcall" fn initialize(auth_code: i32) -> i32 {
     extern "Rust" {
         fn main();
     }
+    set_hook(Box::new(|info| { set_fatal(info.to_string()); }));
     api::init(auth_code);
     main();
     0
