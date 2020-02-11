@@ -1,16 +1,15 @@
-use std::mem;
-
+use std::convert::TryFrom;
 use std::ffi::{CString, CStr};
+use std::io::Error;
+use std::os::raw::c_char;
+
 use encoding::{EncoderTrap, DecoderTrap, Encoding};
 use encoding::all::GB18030;
 
 use crate::cqp;
-#[macro_use]
-use super::*;
-use crate::qqtargets::{Group, read_multi_object, GroupMember};
+use crate::qqtargets::{Group, read_multi_object, GroupMember, User};
 
 use once_cell::sync::OnceCell;
-use std::convert::TryFrom;
 
 static AUTH_CODE: OnceCell<i32> = OnceCell::new();
 
@@ -28,7 +27,56 @@ macro_rules! utf8 {
     };
 }
 
+macro_rules! try_convert_to {
+    ($from:ty, $to:ty, $err: ty, $convert: expr) => {
+        impl TryFrom<Convert<$from>> for $to {
+            type Error = $err;
+
+            fn try_from(value: Convert<$from>) -> Result<Self, Self::Error> {
+                $convert(value)
+            }
+        }
+    };
+}
+
+macro_rules! convert_to {
+    ($from:ty, $to:ty, $convert: expr) => {
+        impl From<Convert<$from>> for $to {
+            fn from(value: Convert<$from>) -> Self {
+                $convert(value.0)
+            }
+        }
+    };
+
+    ($t: ty) => {
+        convert_to!($t, $t, |value| value);
+    };
+}
+
+macro_rules! convert_from {
+    ($from:ty, $to:ty, $convert: expr) => {
+        impl From<$from> for Convert<$to> {
+            fn from(value: $from) -> Self {
+                Convert { 0: $convert(value) }
+            }
+        }
+    };
+
+    ($t: ty) => {
+        convert_from!($t, $t, |value| value);
+    };
+}
+
 macro_rules! gen_api_func {
+    ($(($cq_func: ident, $func: ident, $($arg: ident: $t: ty),* => $result_t: ty)),*) => {
+        $(gen_api_func!($cq_func, $func, $($arg: $t),* => $result_t);)*
+        fn init_api_funcs(lib: libloading::Library) {
+            unsafe {
+                $($cq_func.set(*lib.get(stringify!($cq_func).as_bytes()).unwrap());)*
+            }
+        }
+    };
+
     ($cq_func: ident, $func: ident, $($arg: ident: $t: ty),* => $result_t: ty) => {
         static $cq_func: OnceCell<extern "stdcall" fn(i32, $($t),*) -> $result_t> = OnceCell::new();
         paste::item! {
@@ -39,18 +87,7 @@ macro_rules! gen_api_func {
     };
 }
 
-macro_rules! gen_api_funcs {
-    ($(($cq_func: ident, $func: ident, $($arg: ident: $t: ty),* => $result_t: ty)),*) => {
-        $(gen_api_func!($cq_func, $func, $($arg: $t),* => $result_t);)*
-        fn init_api_funcs(lib: libloading::Library) {
-            unsafe {
-                $($cq_func.set(*lib.get(stringify!($cq_func).as_bytes()).unwrap());)*
-            }
-        }
-    };
-}
-
-gen_api_funcs!(
+gen_api_func!(
     (CQ_sendPrivateMsg, send_private_msg, user_id: i64, msg: *const c_char => i32),
     (CQ_sendGroupMsg, send_group_msg, group_id: i64, msg: *const c_char => i32),
     (CQ_sendDiscussMsg, send_discuss_msg, discuss_id: i64, msg: *const c_char => i32),
@@ -90,132 +127,40 @@ gen_api_funcs!(
 
 pub struct Convert<T>(T);
 
-impl From<i64> for Convert<i64> {
-    fn from(i: i64) -> Self {
-        Convert { 0: i }
-    }
-}
+convert_from!(i64);
+convert_from!(i32);
+convert_from!(bool);
+convert_from!(&str, *const c_char, |str| gb18030!(str));
+convert_from!(Flag, *const c_char, |flag: Flag| gb18030!(str.as_ref()));
+convert_from!(CQLogLevel, i32, |level| match level {
+    CQLogLevel::DEBUG => cqp::CQLOG_DEBUG,
+    CQLogLevel::INFO => cqp::CQLOG_INFO,
+    CQLogLevel::INFOSUCCESS => cqp::CQLOG_INFOSUCCESS,
+    CQLogLevel::INFORECV => cqp::CQLOG_INFORECV,
+    CQLogLevel::INFOSEND => cqp::CQLOG_INFOSEND,
+    CQLogLevel::WARNING => cqp::CQLOG_WARNING,
+    CQLogLevel::ERROR => cqp::CQLOG_ERROR,
+    CQLogLevel::FATAL => cqp::CQLOG_FATAL,
+});
+convert_from!(bool, i32, |b| b as i32);
+convert_from!(*const c_char);
 
-impl From<i32> for Convert<i32> {
-    fn from(i: i32) -> Self {
-        Convert { 0: i }
-    }
-}
-
-impl From<&str> for Convert<*const c_char> {
-    fn from(str: &str) -> Self {
-        Convert { 0: gb18030!(str) }
-    }
-}
-
-impl From<String> for Convert<*const c_char> {
-    fn from(str: String) -> Self {
-        Convert { 0: gb18030!(str.as_ref()) }
-    }
-}
-
-impl From<CQLogLevel> for Convert<i32> {
-    fn from(level: CQLogLevel) -> Self {
-        Convert { 0: match level {
-            CQLogLevel::DEBUG => cqp::CQLOG_DEBUG,
-            CQLogLevel::INFO => cqp::CQLOG_INFO,
-            CQLogLevel::INFOSUCCESS => cqp::CQLOG_INFOSUCCESS,
-            CQLogLevel::INFORECV => cqp::CQLOG_INFORECV,
-            CQLogLevel::INFOSEND => cqp::CQLOG_INFOSEND,
-            CQLogLevel::WARNING => cqp::CQLOG_WARNING,
-            CQLogLevel::ERROR => cqp::CQLOG_ERROR,
-            CQLogLevel::FATAL => cqp::CQLOG_FATAL,
-        }}
-    }
-}
-
-impl From<bool> for Convert<i32> {
-    fn from(b: bool) -> Self {
-        Convert::from(b as i32)
-    }
-}
-
-impl From<bool> for Convert<bool> {
-    fn from(b: bool) -> Self {
-        Convert { 0: b }
-    }
-}
-
-impl From<*const c_char> for Convert<*const c_char> {
-    fn from(c_char: *const c_char) -> Self {
-        Convert { 0: c_char }
-    }
-}
-
-impl From<Convert<i64>> for i64 {
-    fn from(c: Convert<i64>) -> Self {
-        c.0
-    }
-}
-
-impl From<Convert<i32>> for i32 {
-    fn from(c: Convert<i32>) -> Self {
-        c.0
-    }
-}
-
-impl From<Convert<*const c_char>> for *const c_char {
-    fn from(c: Convert<*const c_char>) -> Self {
-        c.0
-    }
-}
-
-impl From<Convert<*const c_char>> for String {
-    fn from(c: Convert<*const c_char>) -> Self {
-        utf8!(c.0)
-    }
-}
-
-impl From<Convert<i32>> for bool {
-    fn from(c: Convert<i32>) -> Self {
-        c.0 != 0
-    }
-}
-
-impl TryFrom<Convert<*const c_char>> for GroupMember {
-    type Error = std::io::Error;
-
-    fn try_from(value: Convert<*const c_char>) -> Result<Self, Self::Error> {
-        GroupMember::decode(base64::decode(String::from(value).as_bytes()).unwrap())
-    }
-}
-
-impl TryFrom<Convert<*const c_char>> for Group {
-    type Error = std::io::Error;
-
-    fn try_from(value: Convert<*const c_char>) -> Result<Self, Self::Error> {
-        Group::decode(base64::decode(String::from(value).as_bytes()).unwrap())
-    }
-}
-
-impl TryFrom<Convert<*const c_char>> for Vec<Group> {
-    type Error = std::io::Error;
-
-    fn try_from(value: Convert<*const c_char>) -> Result<Self, Self::Error> {
-        read_multi_object(base64::decode(String::from(value).as_bytes()).unwrap()).and_then(|objs| objs.iter().map(|b| Group::decode_base(b.clone())).collect())
-    }
-}
-
-impl TryFrom<Convert<*const c_char>> for Vec<GroupMember> {
-    type Error = std::io::Error;
-
-    fn try_from(value: Convert<*const c_char>) -> Result<Self, Self::Error> {
-        read_multi_object(base64::decode(String::from(value).as_bytes()).unwrap()).and_then(|objs| objs.iter().map(|b| GroupMember::decode(b.clone())).collect())
-    }
-}
-
-impl TryFrom<Convert<*const c_char>> for User {
-    type Error = std::io::Error;
-
-    fn try_from(value: Convert<*const c_char>) -> Result<Self, Self::Error> {
-        User::decode(base64::decode(String::from(value).as_bytes()).unwrap())
-    }
-}
+convert_to!(i64);
+convert_to!(i32);
+convert_to!(*const c_char);
+convert_to!(*const c_char, String, |c| utf8!(c));
+convert_to!(i32, bool, |i| i != 0);
+try_convert_to!(*const c_char, GroupMember, Error, |c| GroupMember::decode(base64::decode(String::from(c).as_bytes()).unwrap()));
+try_convert_to!(*const c_char, Group, Error, |c| Group::decode(base64::decode(String::from(c).as_bytes()).unwrap()));
+try_convert_to!(*const c_char, Vec<Group>, Error, |c|
+    read_multi_object(base64::decode(String::from(c).as_bytes()).unwrap()).and_then(|objs|
+        objs.iter().map(|b|
+            Group::decode_base(b.clone())).collect()));
+try_convert_to!(*const c_char, Vec<GroupMember>, Error, |c|
+    read_multi_object(base64::decode(String::from(c).as_bytes()).unwrap()).and_then(|objs|
+            objs.iter().map(|b|
+                GroupMember::decode(b.clone())).collect()));
+try_convert_to!(*const c_char, User, Error, |c| User::decode(base64::decode(String::from(c).as_bytes()).unwrap()));
 
 pub enum CQLogLevel {
     DEBUG,
