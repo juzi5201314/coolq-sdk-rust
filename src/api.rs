@@ -79,11 +79,10 @@ macro_rules! gen_api_func {
 
     ($cq_func: ident, $func: ident, $($arg: ident: $t: ty),* => $result_t: ty) => {
         static $cq_func: OnceCell<extern "stdcall" fn(i32, $($t),*) -> $result_t> = OnceCell::new();
-        paste::item! {
-            pub fn $func<$([<$arg _T>]: Into<Convert<$t>>,)*>($($arg: [<$arg _T>]),*) -> Convert<$result_t> {
-                ($cq_func.get().unwrap())(AUTH_CODE.get().unwrap().clone(), $($arg.into().into()),*).into()
-            }
+        pub fn $func($($arg: impl Into<Convert<$t>>),*) -> Convert<$result_t> {
+            ($cq_func.get().unwrap())(AUTH_CODE.get().unwrap().clone(), $($arg.into().into()),*).into()
         }
+
     };
 }
 
@@ -131,7 +130,7 @@ convert_from!(i64);
 convert_from!(i32);
 convert_from!(bool);
 convert_from!(&str, *const c_char, |str| gb18030!(str));
-convert_from!(Flag, *const c_char, |flag: Flag| gb18030!(str.as_ref()));
+convert_from!(Flag, *const c_char, |flag: Flag| gb18030!(flag.as_ref()));
 convert_from!(CQLogLevel, i32, |level| match level {
     CQLogLevel::DEBUG => cqp::CQLOG_DEBUG,
     CQLogLevel::INFO => cqp::CQLOG_INFO,
