@@ -187,20 +187,20 @@ impl SendMessage for Group {
 
 impl Group {
     pub fn new(group_id: i64) -> Group {
-        Group::try_from(get_group_info(group_id, false)).unwrap()
+        Group::try_from(get_group_info(group_id, false).unwrap()).unwrap()
     }
 
     //部分参数如 area、title 等等无法获取到（为空）。要获取全部参数请使用 get_member。
     pub fn get_members(&self) -> IOResult<Vec<GroupMember>> {
-        get_group_member_list(self.group_id).try_into()
+        get_group_member_list(self.group_id).unwrap().try_into()
     }
 
     pub fn get_member(&self, user_id: i64) -> IOResult<GroupMember> {
-        get_group_member_info_v2(self.group_id, user_id, false).try_into()
+        get_group_member_info_v2(self.group_id, user_id, false).unwrap().try_into()
     }
 
     pub fn get_member_no_cache(&self, user_id: i64) -> IOResult<GroupMember> {
-        get_group_member_info_v2(self.group_id, user_id, true).try_into()
+        get_group_member_info_v2(self.group_id, user_id, true).unwrap().try_into()
     }
 
     pub fn set_card(&self, user_id: i64, card: &str) {
@@ -224,7 +224,7 @@ impl Group {
     }
 
     pub fn update(&mut self) -> IOResult<()> {
-        *self = get_group_info(self.group_id, true).try_into()?;
+        *self = get_group_info(self.group_id, true).unwrap().try_into()?;
         Ok(())
     }
 
@@ -327,7 +327,7 @@ impl User {
     //为了防止获取频率过大，所有从事件获取到的User皆是从缓存取的。
     //如果想获得最新信息，请使用update。
     pub(crate) fn new(user_id: i64) -> User {
-        let mut user: User = get_stranger_info(user_id, false).try_into().unwrap();
+        let mut user: User = get_stranger_info(user_id, false).unwrap().try_into().unwrap();
         if !SuperAdminList.read().unwrap().iter().all(|qq| *qq != user_id) {
             user.set_authority(Authority::SuperAdmin);
         }
@@ -346,7 +346,7 @@ impl User {
     }
 
     pub fn update(&mut self) -> std::io::Result<()> {
-        *self = get_stranger_info(self.user_id, true).try_into()?;
+        *self = get_stranger_info(self.user_id, true).unwrap().try_into()?;
         Ok(())
     }
 
@@ -457,6 +457,8 @@ pub mod cqcode {
     use std::collections::HashMap;
     //use reqwest::RedirectPolicy;
     use std::time::Duration;
+    use md5::Digest;
+    use hex::ToHex;
 
     lazy_static! {
             static ref tag: Regex = Regex::new(r"\[CQ:([A-Za-z]*)(?:(,[^\[\]]+))?]").unwrap();
@@ -549,7 +551,7 @@ pub mod cqcode {
 
     impl Image {
         pub(crate) fn to_default(&self) -> String {
-            let data_dir: String = get_app_directory().into();
+            let data_dir: String = get_app_directory().unwrap().into();
             //get_app_directory获取到的路径为 酷q目录\data\app\{appid} ，父目录的父目录则为 酷q目录\data。
             let data_dir = Path::new(data_dir.as_str()).parent().unwrap().parent().unwrap().join(Path::new("image"));
             match self {
@@ -560,21 +562,21 @@ pub mod cqcode {
                     filename.to_str().unwrap().to_string()
                 },
                 Image::Binary(b) => {
-                    let filename = format!("{}.jpg", uuid::Uuid::new_v4());
+                    let filename = format!("{}.jpg", md5::Md5::digest(b.clone().as_slice()).encode_hex::<String>());
                     let mut f = fs::File::create(data_dir.join(&filename)).unwrap();
                     f.write_all(b).unwrap();
                     f.flush().unwrap();
                     filename
                 },
                 Image::Base64(s) => {
-                    let filename = format!("{}.jpg", uuid::Uuid::new_v4());
+                    let filename = format!("{}.jpg", md5::Md5::digest(s.as_bytes()).encode_hex::<String>());
                     let mut f = fs::File::create(data_dir.join(&filename)).unwrap();
                     f.write_all(base64::decode(s.as_bytes()).unwrap().as_slice()).unwrap();
                     f.flush().unwrap();
                     filename
                 },
                 Image::Http(s) => {
-                    let filename = format!("{}.jpg", uuid::Uuid::new_v4());
+                    let filename = format!("{}.jpg", md5::Md5::digest(s.as_bytes()).encode_hex::<String>());
                     let mut f = fs::File::create(data_dir.join(&filename)).unwrap();
                     let mut b: Vec<u8> = Vec::new();
                     //最多只能重定向10次，并在5秒之后超时
@@ -597,7 +599,7 @@ pub mod cqcode {
             use async_std::fs;
             use async_std::prelude::*;
 
-            let data_dir: String = get_app_directory().into();
+            let data_dir: String = get_app_directory().unwrap().into();
             //get_app_directory获取到的路径为 酷q目录\data\app\{appid} ，父目录的父目录则为 酷q目录\data。
             let data_dir = Path::new(data_dir.as_str()).parent().unwrap().parent().unwrap().join(Path::new("image"));
             match self {
@@ -608,21 +610,22 @@ pub mod cqcode {
                     filename.to_str().unwrap().to_string()
                 },
                 Image::Binary(b) => {
-                    let filename = format!("{}.jpg", uuid::Uuid::new_v4());
+                    let m = md5::Md5::digest(b);
+                    let filename = format!("{}.jpg", m.encode_hex::<String>());
                     let mut f = fs::File::create(data_dir.join(&filename)).await.unwrap();
                     f.write_all(b).await.unwrap();
                     f.flush().await;
                     filename
                 },
                 Image::Base64(s) => {
-                    let filename = format!("{}.jpg", uuid::Uuid::new_v4());
+                    let filename = format!("{}.jpg", md5::Md5::digest(s.as_bytes()).encode_hex::<String>());
                     let mut f = fs::File::create(data_dir.join(&filename)).await.unwrap();
                     f.write_all(base64::decode(s.as_bytes()).unwrap().as_slice()).await.unwrap();
                     f.flush().await;
                     filename
                 },
                 Image::Http(s) => {
-                    let filename = format!("{}.jpg", uuid::Uuid::new_v4());
+                    let filename = format!("{}.jpg", md5::Md5::digest(s.as_bytes()).encode_hex::<String>());
                     let mut f = fs::File::create(data_dir.join(&filename)).await.unwrap();
                     let mut b: Vec<u8> = Vec::new();
                     //最多只能重定向10次，并在5秒之后超时

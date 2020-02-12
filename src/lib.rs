@@ -1,3 +1,4 @@
+
 #![allow(unused_attributes)]
 #![allow(non_upper_case_globals)]
 #![allow(dead_code)]
@@ -8,24 +9,24 @@
 #[macro_use]
 extern crate lazy_static;
 
-use std::ffi::{CString, CStr};
-use encoding::{EncoderTrap, DecoderTrap, Encoding};
-use encoding::all::GB18030;
-
+use std::convert::{TryFrom, TryInto};
+use std::ffi::{CStr, CString};
 use std::os::raw::c_char;
-use std::convert::{TryInto, TryFrom};
+use std::panic::set_hook;
+
+use encoding::{DecoderTrap, EncoderTrap, Encoding};
+use encoding::all::GB18030;
 
 use events::*;
 use listener::*;
+
+use crate::api::{Flag, get_group_member_info_v2, set_fatal};
+use crate::qqtargets::{Authority, File, Group, GroupMember, GroupRole, Message, User};
 
 pub mod api;
 mod cqp;
 pub mod events;
 pub mod listener;
-
-use crate::api::{Flag, get_group_member_info_v2, set_fatal};
-use crate::qqtargets::{User, Group, File, Message, Authority, GroupRole, GroupMember};
-use std::panic::set_hook;
 
 pub mod qqtargets;
 
@@ -49,20 +50,16 @@ macro_rules! register_listener {
     };
 }
 
-extern "stdcall" {
-    pub fn LoadLibraryA(lp_module_name: *const u8) -> *const usize;
-    pub fn GetProcAddress(h_module: *const usize, lp_proc_name: *const u8) -> *const usize;
-}
-
-#[export_name = "AppInfo"]
+/*#[export_name = "AppInfo"]
 pub unsafe extern "stdcall" fn app_info() -> *const c_char {
     extern "Rust" {
         fn app_info() -> (usize, String);
     }
     let (version, appid) = app_info();
     crate::api::Convert::from(format!("{},{}", version, appid).as_str()).into()
-}
+}*/
 
+/*
 #[export_name = "Initialize"]
 pub unsafe extern "stdcall" fn initialize(auth_code: i32) -> i32 {
     extern "Rust" {
@@ -73,6 +70,7 @@ pub unsafe extern "stdcall" fn initialize(auth_code: i32) -> i32 {
     main();
     0
 }
+*/
 
 #[no_mangle]
 pub extern "stdcall" fn on_enable() -> i32 {
@@ -127,7 +125,7 @@ pub extern "stdcall" fn on_group_msg(
     font: i32,
 ) -> i32 {
     let mut user = User::new(user_id);
-    user.set_authority(match GroupMember::try_from(get_group_member_info_v2(group_id, user_id, false)).unwrap().role {
+    user.set_authority(match GroupMember::try_from(get_group_member_info_v2(group_id, user_id, false).unwrap()).unwrap().role {
         GroupRole::Owner => Authority::GroupLord,
         GroupRole::Admin => Authority::GroupAdmin,
         GroupRole::Member => Authority::User
