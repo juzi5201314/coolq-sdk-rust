@@ -1,4 +1,45 @@
 //! 在编译时生成app.json
+//!
+//! # Examples
+//! ```should_panic
+//! // build.rs
+//! fn main() {
+//!    coolq_sdk_rust::gen_app_json::AppJson::new()
+//!        .name("rust-sdk-example".to_owned())
+//!        .version("0.0.1".to_owned())
+//!        .version_id(1)
+//!        .author("soeur <me@gugugu.dev>".to_owned())
+//!        .description("rust sdk example.".to_owned())
+//!        .finish()
+//! }
+//! ```
+//!
+//! ## 不使用sdk的事件处理，自定义处理函数。
+//! ```should_panic
+//! // build.rs
+//! fn main() {
+//!     coolq_sdk_rust::gen_app_json::AppJson::new()
+//!         // .name .version...
+//!         .no_default_event()
+//!         .add_event(1003, "插件启用", 30000, "cq_on_plugin_enable")
+//!         .remove_event(1003, 30000)
+//!         .finish()
+//! }
+//! ```
+//!
+//! ## 不使用sdk默认生成的全部auth，根据需要自己生成
+//! ```should_panic
+//! // build.rs
+//! fn main() {
+//!     coolq_sdk_rust::gen_app_json::AppJson::new()
+//!         // .name .version...
+//!         .no_default_auth()
+//!         .add_auth(20)
+//!         .add_auth(30)
+//!         .remove_auth(20)
+//!         .finish()
+//! }
+//! ```
 
 use std::env;
 use std::fs::File;
@@ -31,28 +72,28 @@ macro_rules! default_events {
                 json!({
                     "id": EVENT_ID.fetch_add(1, Ordering::SeqCst),
                     "type": $type,
-                    "name": $name.to_string(),
+                    "name": format!("{} 最高优先度", $name).to_string(),
                     "priority": 10000,
                     "function": format!("{}_highest", $func_name).to_string()
                 }),
                 json!({
                     "id": EVENT_ID.fetch_add(1, Ordering::SeqCst),
                     "type": $type,
-                    "name": $name.to_string(),
+                    "name": format!("{} 高优先度", $name).to_string(),
                     "priority": 20000,
                     "function": format!("{}_high", $func_name).to_string()
                 }),
                 json!({
                     "id": EVENT_ID.fetch_add(1, Ordering::SeqCst),
                     "type": $type,
-                    "name": $name.to_string(),
+                    "name": format!("{} 中高优先度", $name).to_string(),
                     "priority": 30000,
                     "function": format!("{}_medium", $func_name).to_string()
                 }),
                 json!({
                     "id": EVENT_ID.fetch_add(1, Ordering::SeqCst),
                     "type": $type,
-                    "name": $name.to_string(),
+                    "name": format!("{} 低优先度", $name).to_string(),
                     "priority": 40000,
                     "function": format!("{}_low", $func_name).to_string()
                 })
@@ -94,6 +135,7 @@ impl AppJson {
         self
     }
 
+    /// 事件类型，名字，优先度，函数名字。具体查看[酷q文档](https://docs.cqp.im/dev/v9/app.json/event/)
     pub fn add_event(&mut self, _type: usize, name: &str, priority: usize, func_name: &str) -> &mut Self {
         self.event.push(json!({
             "id": EVENT_ID.fetch_add(1, Ordering::SeqCst),
@@ -105,8 +147,13 @@ impl AppJson {
         self
     }
 
-    // 删除指定类型，优先度的事件。
-    // 注意: 若删除事件，sdk里对应的事件回调将不会被执行。
+    pub fn no_default_event(&mut self) -> &mut Self {
+        self.event.clear();
+        self
+    }
+
+    /// 删除指定类型，优先度的事件。
+    /// 注意: 若删除事件，sdk里对应的事件回调将不会被执行。
     pub fn remove_event(&mut self, _type: usize, priority: usize) -> &mut Self {
         self.event.remove(self.event.iter().position(|e| {
             if let Value::Object(v) = e {
