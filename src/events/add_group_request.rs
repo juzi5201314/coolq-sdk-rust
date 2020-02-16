@@ -1,19 +1,37 @@
-use super::{Event, Events};
-use crate::api::{Flag, set_group_add_request_v2};
-use crate::qqtargets::{Group, User};
+use crate::api::{set_group_add_request_v2, Convert, Flag};
+use crate::targets::group::Group;
+use crate::targets::user::User;
+use std::os::raw::c_char;
 
 #[derive(Debug)]
 pub struct AddGroupRequestEvent {
-    pub(crate) canceld: bool,
     pub sub_type: i32,
     pub send_time: i32,
     pub msg: String,
     pub flag: Flag,
     pub(crate) group: Group,
-    pub(crate) user: User
+    pub(crate) user: User,
 }
 
 impl AddGroupRequestEvent {
+    pub fn new(
+        sub_type: i32,
+        send_time: i32,
+        group_id: i64,
+        user_id: i64,
+        msg: *const c_char,
+        flag: *const c_char,
+    ) -> Self {
+        AddGroupRequestEvent {
+            sub_type,
+            send_time,
+            msg: Convert::from(msg).into(),
+            flag: Convert::from(flag).into(),
+            group: Group::new(group_id).unwrap(),
+            user: User::new(user_id),
+        }
+    }
+
     pub fn is_invite(&self) -> bool {
         self.sub_type == 2
     }
@@ -32,17 +50,5 @@ impl AddGroupRequestEvent {
 
     pub fn get_group(&self) -> &Group {
         &self.group
-    }
-}
-
-impl Event for AddGroupRequestEvent {
-    fn get_type(&self) -> Events { Events::AddGroupRequest }
-
-    fn is_cancel(&self) -> bool {
-        self.canceld
-    }
-
-    fn cancel(&mut self) {
-        self.canceld = true;
     }
 }

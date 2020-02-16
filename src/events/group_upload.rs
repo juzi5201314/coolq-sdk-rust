@@ -1,24 +1,31 @@
-use super::{Event, Events};
-use crate::qqtargets::File;
+use crate::api::Convert;
+use crate::targets::File;
+use std::convert::TryInto;
+use std::os::raw::c_char;
 
 #[derive(Debug)]
 pub struct GroupUploadEvent {
-    pub(crate) canceld: bool,
     pub sub_type: i32,
     pub send_time: i32,
     pub group_id: i64,
     pub user_id: i64,
-    pub file: File
+    pub file: File,
 }
 
-impl Event for GroupUploadEvent {
-    fn get_type(&self) -> Events { Events::GroupMessage }
-
-    fn is_cancel(&self) -> bool {
-        self.canceld
-    }
-
-    fn cancel(&mut self) {
-        self.canceld = true;
+impl GroupUploadEvent {
+    pub fn new(
+        sub_type: i32,
+        send_time: i32,
+        group_id: i64,
+        user_id: i64,
+        file: *const c_char,
+    ) -> Self {
+        GroupUploadEvent {
+            sub_type,
+            send_time,
+            group_id,
+            user_id,
+            file: Convert::from(file).try_into().unwrap(),
+        }
     }
 }

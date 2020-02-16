@@ -1,8 +1,8 @@
-use super::{Event, Events};
+use std::os::raw::c_char;
 
+/// qq已经放弃讨论组，所以讨论组方面的东西就不写了。
 #[derive(Debug)]
 pub struct DiscussMessageEvent {
-    pub(crate) canceld: bool,
     pub sub_type: i32,
     pub msg_id: i32,
     pub discuss_id: i64,
@@ -12,18 +12,21 @@ pub struct DiscussMessageEvent {
 }
 
 impl DiscussMessageEvent {
-    pub fn get_user() {}
-    //fn get_discuss() {} qq已经放弃讨论组，所以讨论组方面的东西就不写了。
-}
-
-impl Event for DiscussMessageEvent {
-    fn get_type(&self) -> Events { Events::GroupMessage }
-
-    fn is_cancel(&self) -> bool {
-        self.canceld
-    }
-
-    fn cancel(&mut self) {
-        self.canceld = true;
+    pub fn new(
+        sub_type: i32,
+        msg_id: i32,
+        discuss_id: i64,
+        user_id: i64,
+        msg: *const c_char,
+        font: i32,
+    ) -> Self {
+        DiscussMessageEvent {
+            sub_type,
+            msg_id,
+            discuss_id,
+            user_id,
+            msg: "".to_string(),
+            font,
+        }
     }
 }

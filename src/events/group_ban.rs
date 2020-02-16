@@ -1,18 +1,35 @@
-use super::{Event, Events};
-use crate::qqtargets::{Group, User};
+use crate::targets::group::Group;
+use crate::targets::user::User;
 
 #[derive(Debug)]
 pub struct GroupBanEvent {
-    pub(crate) canceld: bool,
     pub sub_type: i32,
     pub send_time: i32,
     pub(crate) operate_user: User,
     pub(crate) being_operate_user: User,
     pub time: i64,
-    pub(crate) group: Group
+    pub(crate) group: Group,
 }
 
 impl GroupBanEvent {
+    pub fn new(
+        sub_type: i32,
+        send_time: i32,
+        group_id: i64,
+        operate_user_id: i64,
+        being_operate_user_id: i64,
+        time: i64,
+    ) -> Self {
+        GroupBanEvent {
+            sub_type,
+            send_time,
+            operate_user: User::new(operate_user_id),
+            being_operate_user: User::new(being_operate_user_id),
+            time,
+            group: Group::new(group_id).unwrap(),
+        }
+    }
+
     pub fn get_operate_user(&self) -> &User {
         &self.operate_user
     }
@@ -44,17 +61,5 @@ impl GroupBanEvent {
 
     pub fn is_ban(&self) -> bool {
         self.sub_type == 2
-    }
-}
-
-impl Event for GroupBanEvent {
-    fn get_type(&self) -> Events { Events::GroupBan }
-
-    fn is_cancel(&self) -> bool {
-        self.canceld
-    }
-
-    fn cancel(&mut self) {
-        self.canceld = true;
     }
 }
