@@ -1,5 +1,26 @@
 //! 在编译时生成app.json
 //!
+//! 默认情况下，事件回调函数全部为中优先级，方法如 `CQP::on_private_msg`
+//!
+//! 若要启用全部优先级，请打开 full-priority feature:
+//!
+//! Cargo.toml
+//! ```toml
+//! [build-dependencies]
+//! coolq-sdk-rust = { ... features = ["full-priority"] } # 在dependencies中打开feature，才会生成对应的函数
+//! ```
+//! 然后CQP trait里的事件方法全部更改为如:
+//!
+//! `on_private_msg_highest`
+//!
+//! `on_private_msg_high`
+//!
+//! `on_private_msg_medium`
+//!
+//! `on_private_msg_low`
+//!
+//! 代表最高，高，中，低 优先级
+//!
 //! # Examples
 //! ```should_panic
 //! // build.rs
@@ -65,38 +86,37 @@ macro_rules! gen_setters {
     };
 }
 
+macro_rules! gen_event_json {
+    ($type: expr, $name: expr, $func_name: expr, $priority: expr, $priority_name: expr) => {
+        json!({
+            "id": EVENT_ID.fetch_add(1, Ordering::SeqCst),
+            "type": $type,
+            "name": format!("{}{}", $name, $priority_name).to_string(),
+            "priority": $priority,
+            "function": format!("{}{}", $func_name, $priority_name).to_string()
+        })
+    };
+}
+
 macro_rules! default_events {
     ($({type: $type: expr, name: $name: expr, function: $func_name: expr}),*) => {
         vec![
+            // 特殊处理这4个事件，因为我认为这4个事件没必要分优先级，而且也不应该进行拦截
+            gen_event_json!(1001, "酷Q启动", "on_start", 10000, ""),
+            gen_event_json!(1002, "酷Q退出", "on_exit", 10000, ""),
+            gen_event_json!(1003, "插件启用", "on_enable", 10000, ""),
+            gen_event_json!(1004, "插件停用", "on_disable", 10000, ""),
             $(
-                json!({
-                    "id": EVENT_ID.fetch_add(1, Ordering::SeqCst),
-                    "type": $type,
-                    "name": format!("{} 最高优先度", $name).to_string(),
-                    "priority": 10000,
-                    "function": format!("{}_highest", $func_name).to_string()
-                }),
-                json!({
-                    "id": EVENT_ID.fetch_add(1, Ordering::SeqCst),
-                    "type": $type,
-                    "name": format!("{} 高优先度", $name).to_string(),
-                    "priority": 20000,
-                    "function": format!("{}_high", $func_name).to_string()
-                }),
-                json!({
-                    "id": EVENT_ID.fetch_add(1, Ordering::SeqCst),
-                    "type": $type,
-                    "name": format!("{} 中高优先度", $name).to_string(),
-                    "priority": 30000,
-                    "function": format!("{}_medium", $func_name).to_string()
-                }),
-                json!({
-                    "id": EVENT_ID.fetch_add(1, Ordering::SeqCst),
-                    "type": $type,
-                    "name": format!("{} 低优先度", $name).to_string(),
-                    "priority": 40000,
-                    "function": format!("{}_low", $func_name).to_string()
-                })
+                #[cfg(feature = "full-priority")]
+                gen_event_json!($type, $name, $func_name, 10000, "_highest"),
+                #[cfg(feature = "full-priority")]
+                gen_event_json!($type, $name, $func_name, 20000, "_high"),
+                #[cfg(feature = "full-priority")]
+                gen_event_json!($type, $name, $func_name, 30000, "_medium"),
+                #[cfg(feature = "full-priority")]
+                gen_event_json!($type, $name, $func_name, 40000, "_low"),
+                #[cfg(not(feature = "full-priority"))]
+                gen_event_json!($type, $name, $func_name, 30000, "")
             ),*
         ]
     };
@@ -121,7 +141,12 @@ impl AppJson {
     }
 
     pub fn remove_auth(&mut self, auth: usize) -> &mut Self {
-        self.auth.remove(self.auth.iter().position(|auth| auth == auth).expect(format!("auth.{} not found", auth).as_ref()));
+        self.auth.remove(
+            self.auth
+                .iter()
+                .position(|auth| auth == auth)
+                .expect(format!("auth.{} not found", auth).as_ref()),
+        );
         self
     }
 
@@ -136,7 +161,13 @@ impl AppJson {
     }
 
     /// 事件类型，名字，优先度，函数名字。具体查看[酷q文档](https://docs.cqp.im/dev/v9/app.json/event/)
-    pub fn add_event(&mut self, _type: usize, name: &str, priority: usize, func_name: &str) -> &mut Self {
+    pub fn add_event(
+        &mut self,
+        _type: usize,
+        name: &str,
+        priority: usize,
+        func_name: &str,
+    ) -> &mut Self {
         self.event.push(json!({
             "id": EVENT_ID.fetch_add(1, Ordering::SeqCst),
             "type": _type,
@@ -155,20 +186,35 @@ impl AppJson {
     /// 删除指定类型，优先度的事件。
     /// 注意: 若删除事件，sdk里对应的事件回调将不会被执行。
     pub fn remove_event(&mut self, _type: usize, priority: usize) -> &mut Self {
-        self.event.remove(self.event.iter().position(|e| {
-            if let Value::Object(v) = e {
-                v.get("type").unwrap() == _type && v.get("priority").unwrap() == priority
-            } else {
-                false
-            }
-        }).unwrap());
+        self.event.remove(
+            self.event
+                .iter()
+                .position(|e| {
+                    if let Value::Object(v) = e {
+                        v.get("type").unwrap() == _type && v.get("priority").unwrap() == priority
+                    } else {
+                        false
+                    }
+                })
+                .unwrap(),
+        );
         self
     }
 
     pub fn finish(&mut self) {
         let out_dir = env::var("OUT_DIR").unwrap();
-        let app_json = Path::new(&out_dir).parent().unwrap().parent().unwrap().parent().unwrap().join("app.json");
-        File::create(app_json).unwrap().write_all(serde_json::to_vec_pretty(self).unwrap().as_slice()).unwrap();
+        let app_json = Path::new(&out_dir)
+            .parent()
+            .unwrap()
+            .parent()
+            .unwrap()
+            .parent()
+            .unwrap()
+            .join("app.json");
+        File::create(app_json)
+            .unwrap()
+            .write_all(serde_json::to_vec_pretty(self).unwrap().as_slice())
+            .unwrap();
     }
 }
 
@@ -194,26 +240,6 @@ impl Default for AppJson {
             author: String::from("hao are you?"),
             description: String::from("rust sdk example"),
             event: default_events![
-                {
-                    type: 1003,
-                    name: "插件启用",
-                    function: "on_enable"
-                },
-                {
-                    type: 1004,
-                    name: "插件停用",
-                    function: "on_disable"
-                },
-                {
-                    type: 1001,
-                    name: "酷Q启动",
-                    function: "on_start"
-                },
-                {
-                    type: 1002,
-                    name: "酷Q退出",
-                    function: "on_exit"
-                },
                 {
                     type: 21,
                     name: "私聊消息",
@@ -272,31 +298,8 @@ impl Default for AppJson {
                 }
             ],
             auth: vec![
-                20,
-                30,
-                101,
-                103,
-                106,
-                110,
-                120,
-                121,
-                122,
-                123,
-                124,
-                125,
-                126,
-                127,
-                128,
-                130,
-                131,
-                132,
-                140,
-                150,
-                151,
-                160,
-                161,
-                162,
-                180
+                20, 30, 101, 103, 106, 110, 120, 121, 122, 123, 124, 125, 126, 127, 128, 130, 131,
+                132, 140, 150, 151, 160, 161, 162, 180,
             ],
         }
     }
