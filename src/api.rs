@@ -1,33 +1,46 @@
-
 //! # 酷q相关api
 //! 在运行时调用CQP.dll
 
-use std::any::TypeId;
-use std::convert::TryFrom;
-use std::default::Default;
-use std::ffi::{CStr, CString};
+use std::convert::{TryFrom, TryInto};
 use std::io::Error as IoError;
 use std::os::raw::c_char;
 use std::ptr::null;
 
-use encoding::{DecoderTrap, EncoderTrap, Encoding};
-use encoding::all::GB18030;
 use once_cell::sync::OnceCell;
 
-use crate::qqtargets::{Group, GroupMember, read_multi_object, User};
+use crate::targets::group::{Group, GroupMember};
+use crate::targets::read_multi_object;
+use crate::targets::user::User;
+use crate::targets::File;
 
 static AUTH_CODE: OnceCell<i32> = OnceCell::new();
 
 macro_rules! gb18030 {
-    ($str: expr) => {
-        CString::new(GB18030.encode($str, EncoderTrap::Ignore).unwrap()).unwrap().into_raw()
-    };
+    ($str: expr) => {{
+        use encoding::types::Encoding;
+        ::std::ffi::CString::new(
+            encoding::all::GB18030
+                .encode($str, encoding::EncoderTrap::Ignore)
+                .unwrap(),
+        )
+        .unwrap()
+        .into_raw()
+    }};
 }
 
+#[doc(hidden)]
+#[macro_export]
 macro_rules! utf8 {
-    ($c_char:expr) => {
+    ($c_char: expr) => {
         unsafe {
-            GB18030.decode(CStr::from_ptr($c_char).to_bytes(), DecoderTrap::Ignore).unwrap()[..].to_string()
+            use encoding::types::Encoding;
+            encoding::all::GB18030
+                .decode(
+                    ::std::ffi::CStr::from_ptr($c_char).to_bytes(),
+                    encoding::DecoderTrap::Ignore,
+                )
+                .unwrap()[..]
+                .to_string()
         }
     };
 }
@@ -76,7 +89,7 @@ macro_rules! gen_api_func {
     ($($(#[$doc: meta])* ($cq_func: ident, $func: ident; $($arg: ident: $t: ty),* => $result_t: ty)),*) => {
         $(gen_api_func!($(#[$doc])* $cq_func, $func; $($arg: $t),* => $result_t);)*
         fn init_api_funcs(lib: libloading::Library) {
-            unsafe {
+            #[allow(unused_must_use)] unsafe {
                 $($cq_func.set(*lib.get(stringify!($cq_func).as_bytes()).unwrap());)*
             }
         }
@@ -168,6 +181,7 @@ gen_api_func!(
     /// # Examples
     /// ```should_panic
     /// use coolq_sdk_rust::api::set_group_ban;
+    ///
     /// set_group_ban(123456, 12345, 60).expect("权限不足");
     /// ```
     (CQ_setGroupBan, set_group_ban; group_id: i64, user_id: i64, time: i64 => i32),
@@ -220,6 +234,7 @@ gen_api_func!(
     /// # Examples
     /// ```should_panic
     /// use coolq_sdk_rust::api::set_group_card;
+    ///
     /// set_group_card(123456, 12345, "群员a").expect("权限不足");
     /// ```
     (CQ_setGroupCard, set_group_card; group_id: i64, user_id: i64, card: *const c_char => i32),
@@ -274,7 +289,7 @@ gen_api_func!(
     /// # Examples
     /// ```should_panic
     /// use coolq_sdk_rust::api::get_group_member_info_v2;
-    /// use coolq_sdk_rust::qqtargets::GroupMember;
+    /// use coolq_sdk_rust::targets::group::GroupMember;
     /// use std::convert::TryInto;
     ///
     /// let member_info: GroupMember = get_group_member_info_v2(123456, 12345, false).expect("获取失败").try_into().expect("解析失败");
@@ -286,8 +301,8 @@ gen_api_func!(
     ///
     /// # Examples
     /// ```should_panic
-    /// use coolq_sdk_rust::qqtargets::GroupMember;
     /// use coolq_sdk_rust::api::get_group_member_list;
+    /// use coolq_sdk_rust::targets::group::GroupMember;
     /// use std::convert::TryInto;
     ///
     /// let member_list: Vec<GroupMember> = get_group_member_list(123456).expect("获取失败").try_into().expect("解析失败");
@@ -299,8 +314,8 @@ gen_api_func!(
     ///
     /// # Examples
     /// ```should_panic
-    /// use coolq_sdk_rust::qqtargets::Group;
     /// use coolq_sdk_rust::api::get_group_list;
+    /// use coolq_sdk_rust::targets::group::Group;
     /// use std::convert::TryInto;
     ///
     /// let groups: Vec<Group> = get_group_list().expect("获取失败").try_into().expect("解析失败");
@@ -309,10 +324,6 @@ gen_api_func!(
     /// 获取好友列表
     ///
     /// # Examples
-    /// ```should_panic
-    ///
-    ///
-    /// ```
     (CQ_getFriendList, get_friend_list; => *const c_char),
     (CQ_getStrangerInfo, get_stranger_info; user_id: i64, no_cache: i32 => *const c_char),
     (CQ_addLog, add_log; priority: i32, tag: *const c_char, msg: *const c_char => i32),
@@ -333,6 +344,8 @@ gen_api_func!(
 convert_from!(i64);
 convert_from!(i32);
 convert_from!(bool);
+convert_from!(String);
+convert_from!(*const c_char, String, |c| utf8!(c));
 convert_from!(&str, *const c_char, |str| gb18030!(str));
 convert_from!(String, *const c_char, |str: String| gb18030!(str.as_ref()));
 convert_from!(CQLogLevel, i32, |level| match level {
@@ -353,17 +366,56 @@ convert_to!(i32);
 convert_to!(*const c_char);
 convert_to!(*const c_char, String, |c| utf8!(c));
 convert_to!(i32, bool, |i| i != 0);
-try_convert_to!(*const c_char, GroupMember, IoError, |c| GroupMember::decode(base64::decode(String::from(c).as_bytes()).unwrap()));
-try_convert_to!(*const c_char, Group, IoError, |c| Group::decode(base64::decode(String::from(c).as_bytes()).unwrap()));
-try_convert_to!(*const c_char, Vec<Group>, IoError, |c|
-    read_multi_object(base64::decode(String::from(c).as_bytes()).unwrap()).and_then(|objs|
-        objs.iter().map(|b|
-            Group::decode_base(b.clone())).collect()));
-try_convert_to!(*const c_char, Vec<GroupMember>, IoError, |c|
-    read_multi_object(base64::decode(String::from(c).as_bytes()).unwrap()).and_then(|objs|
-            objs.iter().map(|b|
-                GroupMember::decode(b.clone())).collect()));
-try_convert_to!(*const c_char, User, IoError, |c| User::decode(base64::decode(String::from(c).as_bytes()).unwrap()));
+try_convert_to!(
+    *const c_char,
+    GroupMember,
+    IoError,
+    |c| GroupMember::decode(String::from(c).as_bytes())
+);
+try_convert_to!(*const c_char, Group, IoError, |c| Group::decode(
+    String::from(c).as_bytes()
+));
+try_convert_to!(*const c_char, Vec<Group>, IoError, |c| read_multi_object(
+    String::from(c).as_bytes()
+)
+.and_then(|objs| objs
+    .iter()
+    .map(|b| Group::decode_base(&b))
+    .collect()));
+try_convert_to!(*const c_char, Vec<GroupMember>, IoError, |c| {
+    read_multi_object(String::from(c).as_bytes()).and_then(|objs| {
+        objs.iter()
+            .map(|b| GroupMember::decode(&b))
+            .collect()
+    })
+});
+try_convert_to!(*const c_char, User, IoError, |c| User::decode(
+    String::from(c).as_bytes()
+));
+try_convert_to!(*const c_char, File, IoError, |c| File::decode(
+    String::from(c).as_bytes()
+));
+
+impl<T: ToString> ToString for Convert<T> {
+    fn to_string(&self) -> String {
+        self.0.to_string()
+    }
+}
+
+impl<F> Convert<F> {
+    /// ```
+    /// use coolq_sdk_rust::api::Convert;
+    ///
+    /// let ok = Convert::from(1).to::<bool>();
+    /// ```
+    pub fn to<T: From<Convert<F>>>(self) -> T {
+        self.into()
+    }
+
+    pub fn try_to<T: TryFrom<Convert<F>>>(self) -> std::result::Result<T, T::Error> {
+        self.try_into()
+    }
+}
 
 /// 用于转换类型
 #[derive(Debug)]
@@ -384,45 +436,60 @@ trait AFrom<T> {
 
 impl AFrom<i32> for Result<Convert<i32>> {
     fn r_from(i: i32) -> Self {
-        if i >= 0 { Ok(Convert::from(i)) } else { Err(Error) }
+        if i >= 0 {
+            Ok(Convert::from(i))
+        } else {
+            Err(Error)
+        }
     }
 }
 
 impl AFrom<i64> for Result<Convert<i64>> {
     fn r_from(i: i64) -> Self {
-        if i != 0 { Ok(Convert::from(i)) } else { Err(Error) }
+        if i != 0 {
+            Ok(Convert::from(i))
+        } else {
+            Err(Error)
+        }
     }
 }
 
 impl AFrom<bool> for Result<Convert<bool>> {
     fn r_from(i: bool) -> Self {
-        if i { Ok(Convert::from(i)) } else { Err(Error) }
+        if i {
+            Ok(Convert::from(i))
+        } else {
+            Err(Error)
+        }
     }
 }
 
 impl AFrom<*const c_char> for Result<Convert<*const c_char>> {
     fn r_from(c: *const c_char) -> Self {
-        if c != null() { Ok(Convert::from(c)) } else { Err(Error) }
+        if c != null() {
+            Ok(Convert::from(c))
+        } else {
+            Err(Error)
+        }
     }
 }
 
-
 /// 调试 灰色
-pub static CQLOG_DEBUG: i32 = 0;
+static CQLOG_DEBUG: i32 = 0;
 /// 信息 黑色
-pub static CQLOG_INFO: i32 = 10;
+static CQLOG_INFO: i32 = 10;
 /// 信息(成功) 紫色
-pub static CQLOG_INFOSUCCESS: i32 = 11;
+static CQLOG_INFOSUCCESS: i32 = 11;
 /// 信息(接收) 蓝色
-pub static CQLOG_INFORECV: i32 = 12;
+static CQLOG_INFORECV: i32 = 12;
 /// 信息(发送) 绿色
-pub static CQLOG_INFOSEND: i32 = 13;
+static CQLOG_INFOSEND: i32 = 13;
 /// 警告 橙色
-pub static CQLOG_WARNING: i32 = 20;
+static CQLOG_WARNING: i32 = 20;
 /// 错误 红色
-pub static CQLOG_ERROR: i32 = 30;
+static CQLOG_ERROR: i32 = 30;
 /// 致命错误 深红
-pub static CQLOG_FATAL: i32 = 40;
+static CQLOG_FATAL: i32 = 40;
 
 /// 日志等级
 pub enum CQLogLevel {
