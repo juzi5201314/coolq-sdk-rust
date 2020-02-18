@@ -1,19 +1,14 @@
 extern crate proc_macro;
 
+use darling::FromMeta;
 use proc_macro2::TokenStream;
+use syn::ReturnType;
 
 use quote::quote;
 
-use syn::ReturnType;
-
-use darling::FromMeta;
-
 #[cfg(not(test))]
 #[proc_macro_attribute]
-pub fn main(
-    _: proc_macro::TokenStream,
-    item: proc_macro::TokenStream,
-) -> proc_macro::TokenStream {
+pub fn main(_: proc_macro::TokenStream, item: proc_macro::TokenStream) -> proc_macro::TokenStream {
     let func = syn::parse_macro_input!(item as syn::ItemFn);
     let func_name = &func.sig.ident;
     let attrs = &func.attrs;
@@ -63,11 +58,10 @@ pub fn listener(
         let extern_func_name = if let Some(priority) = args.priority {
             format!("{}_{}", extern_func_info.0, priority)
         } else {
-            extern_func_info.0
+            format!("{}_medium", extern_func_info.0)
         }
         .parse::<TokenStream>()
         .unwrap();
-
         let args_name_t = extern_func_info.1.parse::<TokenStream>().unwrap();
         let args_name = extern_func_info.2.parse::<TokenStream>().unwrap();
         let result_type = extern_func_info.3.parse::<TokenStream>().unwrap();

@@ -116,7 +116,7 @@ macro_rules! default_events {
                 #[cfg(feature = "full-priority")]
                 gen_event_json!($type, $name, $func_name, 40000, "_low"),
                 #[cfg(not(feature = "full-priority"))]
-                gen_event_json!($type, $name, $func_name, 30000, "")
+                gen_event_json!($type, $name, $func_name, 30000, "_medium")
             ),*
         ]
     };
