@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["PrivateMessageType",""]],"struct":[["AddFriendRequestEvent",""],["AddGroupRequestEvent",""],["DiscussMessageEvent",""],["FriendAddEvent",""],["GroupAdminEvent",""],["GroupBanEvent",""],["GroupMemberDecreaseEvent",""],["GroupMemberIncreaseEvent",""],["GroupMessageEvent",""],["GroupUploadEvent",""],["PrivateMessageEvent",""]]});
