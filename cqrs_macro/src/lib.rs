@@ -103,6 +103,12 @@ macro_rules! gen_get_event_func {
 }
 
 gen_get_event_func!(
+            (StartEvent, on_start;
+            => i32),
+            (ExitEvent, on_exit;
+            => i32),
+            (DisableEvent, on_disable;
+            => i32),
             (PrivateMessageEvent, on_private_msg;
                 sub_type: i32,
                 msg_id: i32,
