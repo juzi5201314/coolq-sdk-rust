@@ -25,7 +25,7 @@
 //! ```should_panic
 //! // build.rs
 //! fn main() {
-//!    coolq_sdk_rust::gen_app_json::AppJson::new()
+//!    coolq_sdk_rust::gen_app_json::AppJson::new("dev.gugugu.example")
 //!        .name("rust-sdk-example".to_owned())
 //!        .version("0.0.1".to_owned())
 //!        .version_id(1)
@@ -39,7 +39,7 @@
 //! ```should_panic
 //! // build.rs
 //! fn main() {
-//!     coolq_sdk_rust::gen_app_json::AppJson::new()
+//!     coolq_sdk_rust::gen_app_json::AppJson::new("dev.gugugu.example")
 //!         // .name .version...
 //!         .no_default_event()
 //!         .add_event(1003, "插件启用", 30000, "cq_on_plugin_enable")
@@ -52,7 +52,7 @@
 //! ```should_panic
 //! // build.rs
 //! fn main() {
-//!     coolq_sdk_rust::gen_app_json::AppJson::new()
+//!     coolq_sdk_rust::gen_app_json::AppJson::new("dev.gugugu.example")
 //!         // .name .version...
 //!         .no_default_auth()
 //!         .add_auth(20)
@@ -124,6 +124,7 @@ macro_rules! default_events {
 
 #[derive(Serialize)]
 pub struct AppJson {
+    appid: String,
     ret: usize,
     apiver: usize,
     name: String,
@@ -136,8 +137,10 @@ pub struct AppJson {
 }
 
 impl AppJson {
-    pub fn new() -> AppJson {
-        Default::default()
+    pub fn new(appid: &str) -> AppJson {
+        let mut aj = AppJson::default();
+        aj.appid = appid.to_owned();
+        aj
     }
 
     pub fn remove_auth(&mut self, auth: usize) -> &mut Self {
@@ -215,6 +218,10 @@ impl AppJson {
             .unwrap()
             .write_all(serde_json::to_vec_pretty(self).unwrap().as_slice())
             .unwrap();
+        File::create(Path::new(&out_dir).join("appid"))
+            .unwrap()
+            .write_all(self.appid.as_bytes())
+            .unwrap();
     }
 }
 
@@ -232,6 +239,7 @@ gen_setters!(
 impl Default for AppJson {
     fn default() -> Self {
         AppJson {
+            appid: "".to_owned(),
             ret: 1,
             apiver: 9,
             name: String::from("example app"),
