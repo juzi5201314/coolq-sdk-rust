@@ -1,5 +1,14 @@
-use regex::Regex;
 use std::collections::HashMap;
+use std::io::{Error, ErrorKind};
+
+use async_std::fs::{copy, File};
+use async_std::io::prelude::WriteExt;
+use async_std::path::Path;
+use hex::ToHex;
+use md5::Digest;
+use regex::Regex;
+
+use crate::api::get_app_directory;
 
 lazy_static! {
     static ref tag_regex: Regex = Regex::new(r"\[CQ:([A-Za-z]*)(?:(,[^\[\]]+))?]").unwrap();
@@ -12,7 +21,7 @@ pub enum CQCode {
     Emoji(i32),
     Bface(i32),
     Sface(i32),
-    Image(CQImage),
+    Image(String),
     Record(String, bool),
     At(i64),
     AtAll(),
@@ -35,7 +44,7 @@ impl ToString for CQCode {
             CQCode::Emoji(id) => format!("[CQ:emoji,id={}]", id),
             CQCode::Bface(id) => format!("[CQ:bface,id={}]", id),
             CQCode::Sface(id) => format!("[CQ:sface,id={}]", id),
-            CQCode::Image(img) => format!("[CQ:image,file={}]", img.to_string()),
+            CQCode::Image(img) => format!("[CQ:image,file={}]", img),
             CQCode::Record(file, magic) => {
                 format!("[CQ:record,file={},magic={}]", file, magic.to_string())
             }
@@ -71,17 +80,63 @@ pub enum CQImage {
     Default(String),
     /// 发送指定目录下的{image}。该目录必须可读。"/home/me/xx.jpg"
     File(String),
-    /// 发送网络图片。"http://domain.com/xx.jpg"
-    Http(String),
     /// 发送base64编码的图片。"JXU2MThCJXU4QkY0JXU4QkREJXVGRjBDJXU1NDNCJXU2MjEx"
     Base64(String),
     /// 发送二进制图片。"很明显，这个没办法演示给你看"
     Binary(Vec<u8>),
 }
 
-impl ToString for CQImage {
-    fn to_string(&self) -> String {
-        unimplemented!()
+impl CQImage {
+    /// 有阻塞版本[`to_file_name_blocking`]
+    pub async fn to_file_name(&self) -> std::io::Result<String> {
+        // 插件数据目录在data\app\appid，借此来获取data目录。
+        let image_dir = Path::new(&get_app_directory().unwrap().to::<String>()).parent().unwrap().parent().unwrap().join("image");
+        Ok(match self {
+            CQImage::Default(img) => img.clone(),
+            CQImage::File(path) => {
+                let path = Path::new(path);
+                if !path.exists().await && !path.is_file().await {
+                    return Err(Error::new(ErrorKind::NotFound, "image file not found or not a file"));
+                }
+                let name = path.file_name().unwrap();
+                let from = image_dir.join(name);
+                let to = Path::new(&from);
+                if !to.exists().await {
+                    copy(path, to).await?;
+                }
+                to.to_str().unwrap().to_owned()
+            },
+            CQImage::Binary(bytes) => {
+                let name = md5::Md5::digest(bytes).encode_hex::<String>();
+                let to = image_dir.join(name);
+                if !to.exists().await {
+                    self.save_file(bytes, &to).await?;
+                }
+                to.to_str().unwrap().to_owned()
+            },
+            CQImage::Base64(b64) => {
+                let bytes = base64::decode(b64).expect("Invalid base64 - CQImage");
+                let name = md5::Md5::digest(&bytes).encode_hex::<String>();
+                let to = image_dir.join(name);
+                if !to.exists().await {
+                    self.save_file(&bytes, &to).await?;
+                }
+                to.to_str().unwrap().to_owned()
+            },
+        })
+    }
+
+    async fn save_file(&self, data: &[u8], path: &Path) -> std::io::Result<()> {
+        let mut file = File::create(path).await?;
+        file.write_all(data).await?;
+        file.sync_all().await
+    }
+
+    /// 有异步版本[`to_file_name`]
+    pub fn to_file_name_blocking(&self) -> std::io::Result<String> {
+        async_std::task::block_on(async {
+            self.to_file_name().await
+        })
     }
 }
 
@@ -132,7 +187,7 @@ pub fn parse(msg: &str) -> Vec<CQCode> {
                 "emoji" => CQCode::Emoji(get_arg("id").parse::<i32>().unwrap_or(-1)),
                 "bface" => CQCode::Bface(get_arg("id").parse::<i32>().unwrap_or(-1)),
                 "sface" => CQCode::Sface(get_arg("id").parse::<i32>().unwrap_or(-1)),
-                "image" => CQCode::Image(CQImage::File(get_arg("file").to_owned())),
+                "image" => CQCode::Image(get_arg("file").to_owned()),
                 "record" => CQCode::Record(get_arg("file").to_owned(), get_arg("magic") == "true"),
                 "at" => {
                     if get_arg("qq") == "all" {
