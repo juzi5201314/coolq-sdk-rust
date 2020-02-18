@@ -4,13 +4,13 @@ use std::io::{Cursor, Result};
 use byteorder::{BigEndian, ReadBytesExt};
 
 use crate::api::{
-    get_group_info, get_group_member_info_v2, get_group_member_list, send_group_msg,
-    send_private_msg, set_group_anonymous, set_group_ban, set_group_card, set_group_kick,
-    set_group_whole_ban, Convert,
+    Convert, get_group_info, get_group_member_info_v2, get_group_member_list,
+    send_group_msg, set_group_anonymous, set_group_ban,
+    set_group_kick, set_group_whole_ban,
 };
 use crate::targets::message::SendMessage;
-use crate::targets::user::UserSex;
 use crate::targets::ReadString;
+use crate::targets::user::UserSex;
 
 #[derive(Debug, Clone)]
 pub enum GroupRole {
@@ -57,7 +57,7 @@ impl SendMessage for GroupMember {
 
 impl GroupMember {
     pub(crate) fn decode(b: &[u8]) -> std::io::Result<GroupMember> {
-        let mut b = Cursor::new(b);
+        let mut b = Cursor::new(base64::decode(&b).expect("Invalid base64 - decode GroupMember"));
         Ok(GroupMember {
             group_id: b.read_i64::<BigEndian>()?,
             user_id: b.read_i64::<BigEndian>()?,
@@ -70,18 +70,10 @@ impl GroupMember {
             last_sent_time: b.read_i32::<BigEndian>()?,
             level: b.read_string()?,
             role: GroupRole::from(b.read_i32::<BigEndian>()?),
-            unfriendly: if b.read_i32::<BigEndian>()? > 0 {
-                true
-            } else {
-                false
-            },
+            unfriendly: b.read_i32::<BigEndian>()? > 0,
             title: b.read_string()?,
             title_expire_time: b.read_i32::<BigEndian>()?,
-            card_changeable: if b.read_i32::<BigEndian>()? > 0 {
-                true
-            } else {
-                false
-            },
+            card_changeable: b.read_i32::<BigEndian>()? > 0,
         })
     }
 }
@@ -101,50 +93,51 @@ impl SendMessage for Group {
 }
 
 impl Group {
-    pub fn new(group_id: i64) -> Result<Group> {
-        get_group_info(group_id, false).unwrap().try_into()
-    }
-
-    //部分参数如 area、title 等等无法获取到（为空）。要获取全部参数请使用 get_member。
-    pub fn get_members(&self) -> Result<Vec<GroupMember>> {
-        get_group_member_list(self.group_id).unwrap().try_into()
-    }
-
-    pub fn get_member(&self, user_id: i64) -> Result<GroupMember> {
-        get_group_member_info_v2(self.group_id, user_id, false)
-            .unwrap()
+    pub fn new(group_id: i64) -> Group {
+        get_group_info(group_id, false)
+            .expect("cannot get group info.")
             .try_into()
+            .expect("cannot decode group")
     }
 
-    pub fn get_member_no_cache(&self, user_id: i64) -> Result<GroupMember> {
-        get_group_member_info_v2(self.group_id, user_id, true)
-            .unwrap()
+    /// 部分参数如 area、title 等等无法获取到（为空）。要获取全部参数请使用 get_member。
+    pub fn get_members(&self) -> crate::api::Result<Vec<GroupMember>> {
+        Ok(get_group_member_list(self.group_id)?
             .try_into()
+            .expect("cannot decode GroupMember list"))
     }
 
-    pub fn set_can_anonymous(&self, enable: bool) {
-        set_group_anonymous(self.group_id, enable);
+    pub fn get_member(&self, user_id: i64) -> crate::api::Result<GroupMember> {
+        Ok(get_group_member_info_v2(self.group_id, user_id, false)?
+            .try_into()
+            .expect("cannot decode GroupMember"))
     }
 
-    pub fn set_whole_ban(&self, enable: bool) {
-        set_group_whole_ban(self.group_id, enable);
+    pub fn set_can_anonymous(&self, enable: bool) -> crate::api::Result<Convert<i32>> {
+        set_group_anonymous(self.group_id, enable)
     }
 
-    pub fn set_ban(&self, user_id: i64, time: i64) {
-        set_group_ban(self.group_id, user_id, time);
+    pub fn set_whole_ban(&self, enable: bool) -> crate::api::Result<Convert<i32>> {
+        set_group_whole_ban(self.group_id, enable)
     }
 
-    pub fn set_kick(&self, user_id: i64, refuse_rejoin: bool) {
-        set_group_kick(self.group_id, user_id, refuse_rejoin);
+    pub fn set_ban(&self, user_id: i64, time: i64) -> crate::api::Result<Convert<i32>> {
+        set_group_ban(self.group_id, user_id, time)
     }
 
-    pub fn update(&mut self) -> Result<Group> {
-        get_group_info(self.group_id, true).unwrap().try_into()
+    pub fn set_kick(&self, user_id: i64, refuse_rejoin: bool) -> crate::api::Result<Convert<i32>> {
+        set_group_kick(self.group_id, user_id, refuse_rejoin)
     }
 
-    //用于get_group_list
-    //只有基础信息
-    pub(crate) fn decode_base(b: &[u8]) -> Result<Group> {
+    pub fn update(&mut self) -> crate::api::Result<Group> {
+        Ok(get_group_info(self.group_id, true)?
+            .try_into()
+            .expect("cannot decode Group"))
+    }
+
+    /// 用于get_group_list
+    /// 没有群人数信息
+    pub(crate) fn decode_small(b: &[u8]) -> Result<Group> {
         let mut b = Cursor::new(b);
         Ok(Group {
             group_id: b.read_i64::<BigEndian>()?,
@@ -153,7 +146,6 @@ impl Group {
         })
     }
 
-    //含有基础和群人数信息
     pub(crate) fn decode(b: &[u8]) -> Result<Group> {
         let mut b = Cursor::new(base64::decode(&b).unwrap());
         Ok(Group {
@@ -161,7 +153,6 @@ impl Group {
             group_name: b.read_string()?,
             member_count: b.read_i32::<BigEndian>()?,
             max_member_count: b.read_i32::<BigEndian>()?,
-            ..Default::default()
         })
     }
 }

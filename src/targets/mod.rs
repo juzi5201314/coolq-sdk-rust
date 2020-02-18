@@ -1,11 +1,10 @@
-use std::io::{Cursor, Error, Read, Result as IOResult};
+use std::io::{Cursor, Read, Result as IOResult};
 use std::os::raw::c_char;
 
 use byteorder::{BigEndian, ReadBytesExt};
 
-#[macro_use]
+use crate::api::{Convert, Flag, set_group_anonymous_ban};
 use crate::utf8;
-use crate::api::{set_group_anonymous_ban, Flag};
 
 pub mod cqcode;
 pub mod message;
@@ -14,7 +13,7 @@ pub mod group;
 pub mod user;
 
 pub(crate) fn read_multi_object(b: &[u8]) -> IOResult<Vec<Vec<u8>>> {
-    let mut b = Cursor::new(base64::decode(&b).unwrap());
+    let mut b = Cursor::new(base64::decode(&b).expect("Invalid base64 - read_multi_object"));
     let count = b.read_i32::<BigEndian>()?;
     let mut vs = Vec::new();
     for _ in 0..count {
@@ -50,7 +49,7 @@ pub struct File {
 
 impl File {
     pub(crate) fn decode(b: &[u8]) -> IOResult<File> {
-        let mut b = Cursor::new(base64::decode(&b).unwrap());
+        let mut b = Cursor::new(base64::decode(&b).expect("Invalid base64 - decode File"));
         Ok(File {
             id: b.read_string()?,
             name: b.read_string()?,
@@ -69,12 +68,12 @@ pub struct Anonymous {
 }
 
 impl Anonymous {
-    pub fn ban(&self, time: i64) {
-        set_group_anonymous_ban(self.group_id, self.flag.clone(), time);
+    pub fn ban(&self, time: i64) -> crate::api::Result<Convert<i32>> {
+        set_group_anonymous_ban(self.group_id, self.flag.clone(), time)
     }
 
     pub(crate) fn decode(b: &[u8], group_id: i64) -> IOResult<Anonymous> {
-        let mut c = Cursor::new(base64::decode(&b).unwrap());
+        let mut c = Cursor::new(base64::decode(&b).expect("Invalid base64 - decode Anonymous"));
         Ok(Anonymous {
             group_id: group_id,
             user_id: c.read_i64::<BigEndian>()?,

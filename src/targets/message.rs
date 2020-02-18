@@ -1,5 +1,4 @@
 use std::fmt::Display;
-use std::ops::Add;
 
 use serde::export::fmt::Error;
 use serde::export::Formatter;
@@ -19,7 +18,6 @@ pub struct Message {
 impl Message {
     pub fn new(msg: impl Into<Convert<String>>, msg_id: i32) -> Self {
         let msg = msg.into().to_string();
-        let has_cqcode = cqcode::has_cq_code(msg.as_ref());
         Message {
             msg: Self::escape(cqcode::clean(msg.as_ref())),
             cqcodes: cqcode::parse(msg.as_ref()),
@@ -65,6 +63,8 @@ impl Display for MessageSegment {
 }
 
 pub(crate) trait SendMessage {
+
+    /// `@return` msg id
     fn send_message(&self, msg: impl ToString) -> Result<i32> {
         match self.send(msg.to_string().as_ref()) {
             Ok(msg_id) => Ok(msg_id.into()),

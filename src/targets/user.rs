@@ -1,3 +1,12 @@
+//! 在获取陌生人信息和好友列表时使用
+//!
+//!
+//! 权限分组请看[`Authority`]。算是一个小小的权限管理吧
+//!
+//! 使用[`add_master`]和[`add_super_admin`]来添加主人和管理员。
+//!
+//! 使用[`check_authority`]来检查用户权限。
+
 use std::convert::TryInto;
 use std::io::Cursor;
 use std::sync::RwLock;
@@ -87,17 +96,22 @@ impl User {
     //如果想获得最新信息，请使用update。
     pub(crate) fn new(user_id: i64) -> User {
         let mut user = get_stranger_info(user_id, false)
-            .unwrap()
+            .expect("cannot get stranger info")
             .try_to::<User>()
-            .unwrap();
+            .expect("cannot decode User");
         if !SuperAdminList
             .read()
-            .unwrap()
+            .expect("cannot read SuperAdminList")
             .iter()
             .all(|qq| *qq != user_id)
         {
             user.set_authority(Authority::SuperAdmin);
-        } else if !MasterList.read().unwrap().iter().all(|qq| *qq != user_id) {
+        } else if !MasterList
+            .read()
+            .expect("cannot read MasterList")
+            .iter()
+            .all(|qq| *qq != user_id)
+        {
             user.set_authority(Authority::Master);
         }
         user
@@ -109,12 +123,12 @@ impl User {
         }
     }
 
-    pub fn update(&mut self) -> std::io::Result<User> {
-        get_stranger_info(self.user_id, true).unwrap().try_into()
+    pub fn update(&mut self) -> crate::api::Result<User> {
+        Ok(get_stranger_info(self.user_id, true)?.try_into().expect("cannot decode User"))
     }
 
     pub(crate) fn decode(b: &[u8]) -> std::io::Result<User> {
-        let mut b = Cursor::new(base64::decode(&b).unwrap());
+        let mut b = Cursor::new(base64::decode(&b).expect("Invalid base64 - decode User"));
         Ok(User {
             user_id: b.read_i64::<BigEndian>()?,
             nickname: b.read_string()?,
