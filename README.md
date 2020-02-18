@@ -1,5 +1,7 @@
 # coolq-sdk-rust //重写中
 
+![build](https://github.com/juzi5201314/coolq-sdk-rust/workflows/build/badge.svg?branch=master)
+
 [酷q](http://cqp.cc)的一个sdk。
 
 # Build
