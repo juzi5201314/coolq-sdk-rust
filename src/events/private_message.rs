@@ -1,6 +1,5 @@
 use std::os::raw::c_char;
 
-use crate::api::Convert;
 use crate::targets::message::{Message, SendMessage};
 use crate::targets::user::User;
 
@@ -41,16 +40,12 @@ impl PrivateMessageEvent {
         }
     }
 
-    pub fn get_user(&self) -> &User {
-        &self.user
-    }
-
     pub fn get_message(&self) -> &Message {
         &self.msg
     }
 
-    pub fn reply(&self, msg: &str) {
-        self.user.send_message(msg);
+    pub fn reply(&self, msg: &str) -> crate::api::Result<i32> {
+        self.user.send_message(msg)
     }
 
     pub fn get_sub_type(&self) -> PrivateMessageType {

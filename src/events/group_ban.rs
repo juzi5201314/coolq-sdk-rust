@@ -1,14 +1,16 @@
 use crate::targets::group::Group;
 use crate::targets::user::User;
+use crate::api;
+use crate::api::Error;
 
 #[derive(Debug)]
 pub struct GroupBanEvent {
     pub sub_type: i32,
     pub send_time: i32,
-    pub(crate) operate_user: User,
-    pub(crate) being_operate_user: User,
+    pub operate_user: User,
+    pub being_operate_user: User,
     pub time: i64,
-    pub(crate) group: Group,
+    pub group: Group,
 }
 
 impl GroupBanEvent {
@@ -26,32 +28,26 @@ impl GroupBanEvent {
             operate_user: User::new(operate_user_id),
             being_operate_user: User::new(being_operate_user_id),
             time,
-            group: Group::new(group_id).unwrap(),
+            group: Group::new(group_id),
         }
-    }
-
-    pub fn get_operate_user(&self) -> &User {
-        &self.operate_user
-    }
-
-    pub fn get_being_operate_user(&self) -> &User {
-        &self.being_operate_user
-    }
-
-    pub fn get_group(&self) -> &Group {
-        &self.group
     }
 
     pub fn is_whole_ban(&self) -> bool {
         self.being_operate_user.user_id == 0
     }
 
-    //仅在身份为管理员和或群主的时候有效
-    pub fn revoke(&self) {
-        if self.is_whole_ban() {
-            self.group.set_whole_ban(false);
+    /// 撤销禁言
+    ///
+    /// 仅在身份为管理员和或群主的时候有效
+    pub fn revoke(&self) -> crate::api::Result<api::Convert<i32>> {
+        if self.is_ban() {
+            if self.is_whole_ban() {
+                self.group.set_whole_ban(false)
+            } else {
+                self.group.set_ban(self.being_operate_user.user_id, 0)
+            }
         } else {
-            self.group.set_ban(self.being_operate_user.user_id, 0);
+            Err(Error)
         }
     }
 

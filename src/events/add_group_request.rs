@@ -1,7 +1,8 @@
-use crate::api::{set_group_add_request_v2, Convert, Flag};
+use std::os::raw::c_char;
+
+use crate::api::{Convert, Flag, set_group_add_request_v2};
 use crate::targets::group::Group;
 use crate::targets::user::User;
-use std::os::raw::c_char;
 
 #[derive(Debug)]
 pub struct AddGroupRequestEvent {
@@ -9,8 +10,8 @@ pub struct AddGroupRequestEvent {
     pub send_time: i32,
     pub msg: String,
     pub flag: Flag,
-    pub(crate) group: Group,
-    pub(crate) user: User,
+    pub group: Group,
+    pub user: User,
 }
 
 impl AddGroupRequestEvent {
@@ -27,28 +28,24 @@ impl AddGroupRequestEvent {
             send_time,
             msg: Convert::from(msg).into(),
             flag: Convert::from(flag).into(),
-            group: Group::new(group_id).unwrap(),
+            group: Group::new(group_id),
             user: User::new(user_id),
         }
     }
 
+    /// 收到入群邀请
     pub fn is_invite(&self) -> bool {
         self.sub_type == 2
     }
 
+    /// 用户申请入群
     pub fn is_application(&self) -> bool {
         self.sub_type == 1
     }
 
-    pub fn handle(&self, approve: bool, reason: &str) {
-        set_group_add_request_v2(self.flag.clone(), self.sub_type, approve, reason);
+    /// `reason`: 拒绝理由
+    pub fn handle(&self, approve: bool, reason: &str) -> crate::api::Result<Convert<i32>> {
+        set_group_add_request_v2(self.flag.clone(), self.sub_type, approve, reason)
     }
 
-    pub fn get_user(&self) -> &User {
-        &self.user
-    }
-
-    pub fn get_group(&self) -> &Group {
-        &self.group
-    }
 }

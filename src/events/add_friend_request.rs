@@ -9,7 +9,7 @@ pub struct AddFriendRequestEvent {
     pub send_time: i32,
     pub msg: String,
     pub flag: Flag,
-    pub(crate) user: User,
+    pub user: User,
 }
 
 impl AddFriendRequestEvent {
@@ -29,11 +29,8 @@ impl AddFriendRequestEvent {
         }
     }
 
-    pub fn handle(&self, approve: bool, comment: &str) {
-        set_friend_add_request(self.flag.clone(), approve, comment);
-    }
-
-    pub fn get_user(&self) -> &User {
-        &self.user
+    /// `comment`: 备注
+    pub fn handle(&self, approve: bool, comment: &str) -> crate::api::Result<Convert<i32>> {
+        set_friend_add_request(self.flag.clone(), approve, comment)
     }
 }

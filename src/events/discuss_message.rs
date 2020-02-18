@@ -1,6 +1,7 @@
+//! qq已经放弃讨论组，所以讨论组方面的东西就不写了。
+
 use std::os::raw::c_char;
 
-/// qq已经放弃讨论组，所以讨论组方面的东西就不写了。
 #[derive(Debug)]
 pub struct DiscussMessageEvent {
     pub sub_type: i32,

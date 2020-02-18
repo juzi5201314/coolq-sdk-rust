@@ -5,8 +5,8 @@ use crate::targets::user::User;
 pub struct GroupAdminEvent {
     pub sub_type: i32,
     pub send_time: i32,
-    pub(crate) group: Group,
-    pub(crate) user: User,
+    pub group: Group,
+    pub user: User,
 }
 
 impl GroupAdminEvent {
@@ -14,16 +14,9 @@ impl GroupAdminEvent {
         GroupAdminEvent {
             sub_type,
             send_time,
-            group: Group::new(group_id).unwrap(),
+            group: Group::new(group_id),
             user: User::new(user_id),
         }
-    }
-    pub fn get_user(&self) -> &User {
-        &self.user
-    }
-
-    pub fn get_group(&self) -> &Group {
-        &self.group
     }
 
     pub fn is_add(&self) -> bool {
