@@ -6,6 +6,15 @@
       <sourceFolder url="file://$MODULE_DIR$/examples" isTestSource="false" />
       <sourceFolder url="file://$MODULE_DIR$/tests" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/benches" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/cqrs_macro/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/cqrs_macro/examples" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/cqrs_macro/tests" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/src/cqrs_macro/benches" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/cqrs_macro/examples" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/cqrs_macro/tests" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/cqrs_macro/benches" isTestSource="true" />
+      <excludeFolder url="file://$MODULE_DIR$/cqrs_macro/target" />
+      <excludeFolder url="file://$MODULE_DIR$/src/cqrs_macro/target" />
       <excludeFolder url="file://$MODULE_DIR$/target" />
     </content>
     <orderEntry type="inheritedJdk" />

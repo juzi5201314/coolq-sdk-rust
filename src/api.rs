@@ -216,9 +216,17 @@ gen_api_func!(
     /// set_group_whole_ban(123456, true).expect("权限不足");
     /// ```
     (CQ_setGroupWholeBan, set_group_whole_ban; group_id: i64, enable: i32 => i32),
+    /// 禁言匿名成员
     ///
-    (CQ_setGroupAnonymousBan, set_group_anonymous_ban; group_id: i64, anonymous_name: *const c_char, time: i64 => i32),
-    /// 设置群匿名
+    /// # Examples
+    /// ```should_panic
+    ///
+    /// use coolq_sdk_rust::api::set_group_anonymous_ban;
+    ///
+    /// set_group_anonymous_ban(123456, "Flag", 60).expect("禁言失败");
+    /// ```
+    (CQ_setGroupAnonymousBan, set_group_anonymous_ban; group_id: i64, anonymous_flag: *const c_char, time: i64 => i32),
+    /// 设置开启群匿名
     ///
     /// # Examples
     /// ```should_panic
@@ -378,16 +386,10 @@ try_convert_to!(*const c_char, Group, IoError, |c| Group::decode(
 try_convert_to!(*const c_char, Vec<Group>, IoError, |c| read_multi_object(
     String::from(c).as_bytes()
 )
-.and_then(|objs| objs
-    .iter()
-    .map(|b| Group::decode_base(&b))
-    .collect()));
+.and_then(|objs| objs.iter().map(|b| Group::decode_small(&b)).collect()));
 try_convert_to!(*const c_char, Vec<GroupMember>, IoError, |c| {
-    read_multi_object(String::from(c).as_bytes()).and_then(|objs| {
-        objs.iter()
-            .map(|b| GroupMember::decode(&b))
-            .collect()
-    })
+    read_multi_object(String::from(c).as_bytes())
+        .and_then(|objs| objs.iter().map(|b| GroupMember::decode(&b)).collect())
 });
 try_convert_to!(*const c_char, User, IoError, |c| User::decode(
     String::from(c).as_bytes()
