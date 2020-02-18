@@ -25,6 +25,4 @@ jobs:
       - name: Upload to codecov.io
         uses: codecov/codecov-action@v1.0.2
         with:
-          token: ${{secrets.CODECOV_TOKEN}}
-        env: 
-          CODECOV_TOKEN: 1283f43d-e234-463c-9b72-20f67257424b
+          token: 1283f43d-e234-463c-9b72-20f67257424b
