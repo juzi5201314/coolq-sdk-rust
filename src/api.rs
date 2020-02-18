@@ -368,6 +368,7 @@ convert_from!(CQLogLevel, i32, |level| match level {
 });
 convert_from!(bool, i32, |b| b as i32);
 convert_from!(*const c_char);
+convert_from!((), i32, |_| 0); // 为了支持listener可以返回空()
 
 convert_to!(i64);
 convert_to!(i32);
