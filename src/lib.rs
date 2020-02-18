@@ -16,6 +16,7 @@ pub mod gen_app_json;
 pub mod targets;
 
 pub mod prelude {
+    pub use crate::targets::cqcode::CQStr;
     pub use crate::api::*;
     pub use crate::events::*;
     pub use crate::targets::message::Message;

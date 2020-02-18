@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::fmt::{Debug, Display, Formatter};
 use std::io::{Error, ErrorKind};
 
 use async_std::fs::{copy, File};
@@ -37,9 +38,9 @@ pub enum CQCode {
     Unknown(String),
 }
 
-impl ToString for CQCode {
-    fn to_string(&self) -> String {
-        match self {
+impl Display for CQCode {
+    fn fmt(&self, f: &mut Formatter<'_>) -> Result<(), std::fmt::Error> {
+        let s = match self {
             CQCode::Face(id) => format!("[CQ:face,id={}]", id),
             CQCode::Emoji(id) => format!("[CQ:emoji,id={}]", id),
             CQCode::Bface(id) => format!("[CQ:bface,id={}]", id),
@@ -70,7 +71,8 @@ impl ToString for CQCode {
                 url, title, content, image
             ),
             _ => String::new(),
-        }
+        };
+        write!(f, "{}", s)
     }
 }
 
@@ -144,23 +146,30 @@ pub fn clean(s: &str) -> String {
     tag_regex.replace_all(s, "").to_string()
 }
 
-pub fn has_cq_code(s: &str) -> bool {
-    tag_regex.is_match(s)
+pub trait CQStr {
+    fn has_cq_code(&self) -> bool;
+    fn no_cq_code(&self) -> String;
+}
+impl CQStr for str {
+    fn has_cq_code(&self) -> bool {
+        tag_regex.is_match(self)
+    }
+
+    fn no_cq_code(&self) -> String {
+        let mut s = String::new();
+        for c in self.chars() {
+            match c {
+                '&' => s.push_str("&amp;"),
+                '[' => s.push_str("&#91;"),
+                ']' => s.push_str("&#93;"),
+                ',' => s.push_str("&#44;"),
+                _ => s.push(c),
+            };
+        }
+        s
+    }
 }
 
-pub fn no_code(msg: &str) -> String {
-    let mut s = String::new();
-    for c in msg.chars() {
-        match c {
-            '&' => s.push_str("&amp;"),
-            '[' => s.push_str("&#91;"),
-            ']' => s.push_str("&#93;"),
-            ',' => s.push_str("&#44;"),
-            _ => s.push(c),
-        };
-    }
-    s
-}
 
 pub fn parse(msg: &str) -> Vec<CQCode> {
     tag_regex

@@ -1,7 +1,5 @@
-use std::fmt::Display;
 
-use serde::export::fmt::Error;
-use serde::export::Formatter;
+use std::fmt::{Error, Debug, Formatter, Display};
 
 use crate::api::{delete_msg, Convert, Result};
 use crate::targets::cqcode;
@@ -57,6 +55,12 @@ impl MessageSegment {
 }
 
 impl Display for MessageSegment {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::result::Result<(), Error> {
+        write!(f, "{}", self.0)
+    }
+}
+
+impl Debug for MessageSegment {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::result::Result<(), Error> {
         write!(f, "{}", self.0)
     }
