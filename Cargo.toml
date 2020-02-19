@@ -5,6 +5,10 @@ authors = ["soeur <juzi201314@gmail.com>"]
 edition = "2018"
 license = "MIT"
 description = "A sdk for coolq"
+documentation = ""
+repository = "https://github.com/juzi5201314/coolq-sdk-rust"
+keywords = ["coolq"]
+readme = "README.md"
 
 [dependencies]
 encoding = "0.2.33"
