@@ -47,7 +47,7 @@
 //!
 //!
 //! `lib.rs`:
-//! ```should_panic
+//! ```ignore
 //! use coolq_sdk_rust::prelude::*;
 //! use coolq_sdk_rust::targets::message::MessageSegment;
 //!
