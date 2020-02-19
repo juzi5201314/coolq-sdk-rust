@@ -16,6 +16,9 @@ cargo test
 ```
 
 # Documentation
+## online
+[Documentation](https://docs.rs/coolq-sdk-rust/) by docs.rs
+## local
 ```bash
 cargo doc --no-deps
 ```
