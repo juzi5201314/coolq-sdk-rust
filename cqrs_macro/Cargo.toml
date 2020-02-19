@@ -3,8 +3,7 @@ name = "cqrs_macro"
 version = "0.1.0"
 authors = ["juzi5201314 <1034236490@qq.com>"]
 edition = "2018"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+license = "MIT"
 
 [lib]
 proc-macro = true

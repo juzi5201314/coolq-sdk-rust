@@ -3,7 +3,7 @@ use std::os::raw::c_char;
 
 use byteorder::{BigEndian, ReadBytesExt};
 
-use crate::api::{Convert, Flag, set_group_anonymous_ban};
+use crate::api::{set_group_anonymous_ban, Convert, Flag};
 use crate::utf8;
 
 pub mod cqcode;

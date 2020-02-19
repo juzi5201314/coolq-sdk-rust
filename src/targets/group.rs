@@ -4,13 +4,12 @@ use std::io::{Cursor, Result};
 use byteorder::{BigEndian, ReadBytesExt};
 
 use crate::api::{
-    Convert, get_group_info, get_group_member_info_v2, get_group_member_list,
-    send_group_msg, set_group_anonymous, set_group_ban,
-    set_group_kick, set_group_whole_ban,
+    get_group_info, get_group_member_info_v2, get_group_member_list, send_group_msg,
+    set_group_anonymous, set_group_ban, set_group_kick, set_group_whole_ban, Convert,
 };
 use crate::targets::message::SendMessage;
-use crate::targets::ReadString;
 use crate::targets::user::UserSex;
+use crate::targets::ReadString;
 
 #[derive(Debug, Clone)]
 pub enum GroupRole {

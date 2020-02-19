@@ -1,5 +1,4 @@
-
-use std::fmt::{Error, Debug, Formatter, Display};
+use std::fmt::{Debug, Display, Error, Formatter};
 
 use crate::api::{delete_msg, Convert, Result};
 use crate::targets::cqcode;
@@ -67,7 +66,6 @@ impl Debug for MessageSegment {
 }
 
 pub(crate) trait SendMessage {
-
     /// `@return` msg id
     fn send_message(&self, msg: impl ToString) -> Result<i32> {
         match self.send(msg.to_string().as_ref()) {

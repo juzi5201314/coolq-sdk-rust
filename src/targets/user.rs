@@ -124,7 +124,9 @@ impl User {
     }
 
     pub fn update(&mut self) -> crate::api::Result<User> {
-        Ok(get_stranger_info(self.user_id, true)?.try_into().expect("cannot decode User"))
+        Ok(get_stranger_info(self.user_id, true)?
+            .try_into()
+            .expect("cannot decode User"))
     }
 
     pub(crate) fn decode(b: &[u8]) -> std::io::Result<User> {

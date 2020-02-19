@@ -1,6 +1,6 @@
 use std::os::raw::c_char;
 
-use crate::api::{Convert, Flag, set_group_add_request_v2};
+use crate::api::{set_group_add_request_v2, Convert, Flag};
 use crate::targets::group::Group;
 use crate::targets::user::User;
 
@@ -47,5 +47,4 @@ impl AddGroupRequestEvent {
     pub fn handle(&self, approve: bool, reason: &str) -> crate::api::Result<Convert<i32>> {
         set_group_add_request_v2(self.flag.clone(), self.sub_type, approve, reason)
     }
-
 }

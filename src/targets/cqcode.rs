@@ -92,13 +92,21 @@ impl CQImage {
     /// 有阻塞版本[`to_file_name_blocking`]
     pub async fn to_file_name(&self) -> std::io::Result<String> {
         // 插件数据目录在data\app\appid，借此来获取data目录。
-        let image_dir = Path::new(&get_app_directory().unwrap().to::<String>()).parent().unwrap().parent().unwrap().join("image");
+        let image_dir = Path::new(&get_app_directory().unwrap().to::<String>())
+            .parent()
+            .unwrap()
+            .parent()
+            .unwrap()
+            .join("image");
         Ok(match self {
             CQImage::Default(img) => img.clone(),
             CQImage::File(path) => {
                 let path = Path::new(path);
                 if !path.exists().await && !path.is_file().await {
-                    return Err(Error::new(ErrorKind::NotFound, "image file not found or not a file"));
+                    return Err(Error::new(
+                        ErrorKind::NotFound,
+                        "image file not found or not a file",
+                    ));
                 }
                 let name = path.file_name().unwrap();
                 let from = image_dir.join(name);
@@ -107,7 +115,7 @@ impl CQImage {
                     copy(path, to).await?;
                 }
                 to.to_str().unwrap().to_owned()
-            },
+            }
             CQImage::Binary(bytes) => {
                 let name = md5::Md5::digest(bytes).encode_hex::<String>();
                 let to = image_dir.join(name);
@@ -115,7 +123,7 @@ impl CQImage {
                     self.save_file(bytes, &to).await?;
                 }
                 to.to_str().unwrap().to_owned()
-            },
+            }
             CQImage::Base64(b64) => {
                 let bytes = base64::decode(b64).expect("Invalid base64 - CQImage");
                 let name = md5::Md5::digest(&bytes).encode_hex::<String>();
@@ -124,7 +132,7 @@ impl CQImage {
                     self.save_file(&bytes, &to).await?;
                 }
                 to.to_str().unwrap().to_owned()
-            },
+            }
         })
     }
 
@@ -136,9 +144,7 @@ impl CQImage {
 
     /// 有异步版本[`to_file_name`]
     pub fn to_file_name_blocking(&self) -> std::io::Result<String> {
-        async_std::task::block_on(async {
-            self.to_file_name().await
-        })
+        async_std::task::block_on(async { self.to_file_name().await })
     }
 }
 
@@ -169,7 +175,6 @@ impl CQStr for str {
         s
     }
 }
-
 
 pub fn parse(msg: &str) -> Vec<CQCode> {
     tag_regex

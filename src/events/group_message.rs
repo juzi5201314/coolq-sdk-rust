@@ -1,10 +1,10 @@
 use std::os::raw::c_char;
 
 use crate::api::{Convert, Flag};
-use crate::targets::Anonymous;
 use crate::targets::group::Group;
 use crate::targets::message::{Message, SendMessage};
 use crate::targets::user::User;
+use crate::targets::Anonymous;
 
 #[derive(Debug, Clone)]
 pub struct GroupMessageEvent {
@@ -56,7 +56,7 @@ impl GroupMessageEvent {
         self.group.send_message(msg)
     }
 
-    pub fn reply_at(&self, msg: impl ToString) -> crate::api::Result<i32>{
+    pub fn reply_at(&self, msg: impl ToString) -> crate::api::Result<i32> {
         self.group.at(self.user.user_id, msg)
     }
 }

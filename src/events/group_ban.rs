@@ -1,7 +1,7 @@
-use crate::targets::group::Group;
-use crate::targets::user::User;
 use crate::api;
 use crate::api::Error;
+use crate::targets::group::Group;
+use crate::targets::user::User;
 
 #[derive(Debug)]
 pub struct GroupBanEvent {
