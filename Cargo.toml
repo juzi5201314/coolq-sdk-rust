@@ -4,6 +4,7 @@ version = "0.1.0-alpha"
 authors = ["soeur <juzi201314@gmail.com>"]
 edition = "2018"
 license = "MIT"
+description = "A sdk for coolq"
 
 [dependencies]
 encoding = "0.2.33"
@@ -23,6 +24,12 @@ cqrs_macro = { version = "0.1", path = "cqrs_macro" }
 [features]
 default = []
 full-priority = []
+
+[workspace]
+members = ["cqrs_macro"]
+
+[patch.crates-io]
+cqrs_macro = { path = "cqrs_macro" }
 
 [profile.release]
 opt-level = 3
