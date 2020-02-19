@@ -1,6 +1,6 @@
 [package]
 name = "coolq-sdk-rust"
-version = "0.1.0-alpha.1"
+version = "0.1.0-alpha.2"
 authors = ["soeur <juzi201314@gmail.com>"]
 edition = "2018"
 license = "MIT"
