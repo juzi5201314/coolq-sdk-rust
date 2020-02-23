@@ -22,6 +22,9 @@ pub use group_message::*;
 pub use group_upload::*;
 pub use private_message::*;
 
-type StartEvent = ();
-type ExitEvent = ();
-type DisableEvent = ();
+#[allow(dead_code)]
+pub type StartEvent = ();
+#[allow(dead_code)]
+pub type ExitEvent = ();
+#[allow(dead_code)]
+pub type DisableEvent = ();

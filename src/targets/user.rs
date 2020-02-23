@@ -16,6 +16,7 @@ use byteorder::{BigEndian, ReadBytesExt};
 use crate::api::{get_stranger_info, send_private_msg, Convert};
 use crate::targets::message::SendMessage;
 use crate::targets::ReadString;
+use crate::targets::group::{GroupRole, GroupMember};
 
 lazy_static! {
     static ref MasterList: RwLock<Vec<i64>> = RwLock::new(Vec::new());
@@ -49,7 +50,7 @@ impl Default for UserSex {
 pub enum Authority {
     Master = 0,
     SuperAdmin = 1,
-    GroupLord = 2,
+    GroupOwner = 2,
     GroupAdmin = 3,
     User = 4,
 }
@@ -57,6 +58,30 @@ pub enum Authority {
 impl Authority {
     pub fn check_authority(&self, authority: Authority) -> bool {
         self <= &authority
+    }
+
+    pub fn from_group_member(gm: &GroupMember) -> Authority {
+        if !SuperAdminList
+            .read()
+            .expect("cannot read SuperAdminList")
+            .iter()
+            .all(|qq| *qq != gm.user_id)
+        {
+            Authority::SuperAdmin
+        } else if !MasterList
+            .read()
+            .expect("cannot read MasterList")
+            .iter()
+            .all(|qq| *qq != gm.user_id)
+        {
+            Authority::Master
+        } else {
+            match gm.role {
+                GroupRole::Member => Authority::User,
+                GroupRole::Admin => Authority::GroupAdmin,
+                GroupRole::Owner => Authority::GroupOwner
+            }
+        }
     }
 }
 
@@ -66,7 +91,7 @@ pub struct User {
     pub nickname: String,
     pub sex: UserSex,
     pub age: i32,
-    authority: Authority,
+    pub authority: Authority,
 }
 
 impl SendMessage for User {

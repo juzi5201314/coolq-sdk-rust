@@ -8,7 +8,7 @@ use crate::api::{
     set_group_anonymous, set_group_ban, set_group_kick, set_group_whole_ban, Convert,
 };
 use crate::targets::message::SendMessage;
-use crate::targets::user::UserSex;
+use crate::targets::user::{UserSex, Authority};
 use crate::targets::ReadString;
 
 #[derive(Debug, Clone)]
@@ -46,6 +46,7 @@ pub struct GroupMember {
     pub title: String,
     pub title_expire_time: i32,
     pub card_changeable: bool,
+    pub authority: Authority,
 }
 
 impl SendMessage for GroupMember {
@@ -57,7 +58,7 @@ impl SendMessage for GroupMember {
 impl GroupMember {
     pub(crate) fn decode(b: &[u8]) -> std::io::Result<GroupMember> {
         let mut b = Cursor::new(base64::decode(&b).expect("Invalid base64 - decode GroupMember"));
-        Ok(GroupMember {
+        let mut gm = GroupMember {
             group_id: b.read_i64::<BigEndian>()?,
             user_id: b.read_i64::<BigEndian>()?,
             nickname: b.read_string()?,
@@ -73,7 +74,10 @@ impl GroupMember {
             title: b.read_string()?,
             title_expire_time: b.read_i32::<BigEndian>()?,
             card_changeable: b.read_i32::<BigEndian>()? > 0,
-        })
+            authority: Authority::User
+        };
+        gm.authority = Authority::from_group_member(&gm);
+        Ok(gm)
     }
 }
 
