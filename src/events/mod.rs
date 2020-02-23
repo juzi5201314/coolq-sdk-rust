@@ -21,3 +21,7 @@ pub use group_member_increase::*;
 pub use group_message::*;
 pub use group_upload::*;
 pub use private_message::*;
+
+type StartEvent = ();
+type ExitEvent = ();
+type DisableEvent = ();
