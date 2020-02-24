@@ -22,9 +22,12 @@ cargo test
 ```
 
 # Documentation
-## online
+### online
 [Documentation](https://docs.rs/coolq-sdk-rust/) by docs.rs
-## local
+### local
 ```bash
 cargo doc --no-deps
 ```
+
+# Book
+[gitbook.com](https://book-cqrs.gugugu.dev/)
