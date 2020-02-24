@@ -2,14 +2,14 @@
 
 
 ## Cargo.toml
-第一步，自然是要把依赖写到Cargo.toml里([docs.rs](https://docs.rs/coolq-sdk-rust/0.1.0-alpha.2/coolq_sdk_rust/#get-started))
+第一步，自然是要把依赖写到Cargo.toml里([docs.rs](https://docs.rs/coolq-sdk-rust/latest/coolq_sdk_rust/#get-started))
 ```toml
 coolq-sdk-rust = "0.1"
 ```
-目前还支持一个[feature](https://docs.rs/coolq-sdk-rust/0.1.0-alpha.2/coolq_sdk_rust/#features):  
+目前还支持一个[feature](https://docs.rs/coolq-sdk-rust/latest/coolq_sdk_rust/#features):  
  
  **`full-priority`** : 
-> 启用该功能之后，[gen_app_json](https://docs.rs/coolq-sdk-rust/0.1.0-alpha.2/coolq_sdk_rust/gen_app_json/index.html)会生成支持全部 **[优先级](https://docs.cqp.im/dev/v9/app.json/event/#priority)** 的app.json
+> 启用该功能之后，[gen_app_json](https://docs.rs/coolq-sdk-rust/latest/coolq_sdk_rust/gen_app_json/index.html)会生成支持全部 **[优先级](https://docs.cqp.im/dev/v9/app.json/event/#priority)** 的app.json
 
 -------
 
@@ -52,7 +52,7 @@ fn main() {
         .finish();
 }
 ```
-更多信息可以在[gen_app_json](https://docs.rs/coolq-sdk-rust/0.1.0-alpha.3/coolq_sdk_rust/gen_app_json/index.html)找到。
+更多信息可以在[gen_app_json](https://docs.rs/coolq-sdk-rust/latest/coolq_sdk_rust/gen_app_json/index.html)找到。
 
 -------
 
@@ -83,7 +83,7 @@ fn this_is_group_msg(event: &mut GroupMessageEvent) {
 ```
 mian宏必须要写，main函数在插件enable事件时调用。
 
-event在[events](https://docs.rs/coolq-sdk-rust/0.1.0-alpha.3/coolq_sdk_rust/events/index.html)查看。
+event在[events](https://docs.rs/coolq-sdk-rust/latest/coolq_sdk_rust/events/index.html)查看。
 
 priority可选，为[highest, high, medium, low]。缺省为medium。
 只有开启了`full-priority`才有效，否则请缺省。
