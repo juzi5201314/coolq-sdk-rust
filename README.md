@@ -1,4 +1,4 @@
-# coolq-sdk-rust //重写中
+# coolq-sdk-rust
 
 ![build](https://github.com/juzi5201314/coolq-sdk-rust/workflows/build/badge.svg?branch=master)
 ![docs.rs](https://docs.rs/coolq-sdk-rust/badge.svg)
