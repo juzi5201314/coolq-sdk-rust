@@ -83,7 +83,7 @@ fn this_is_group_msg(event: &mut GroupMessageEvent) {
 ```
 mian宏必须要写，main函数在插件enable事件时调用。
 
-event在[events](https://docs.rs/coolq-sdk-rust/0.1.0-alpha.2/coolq_sdk_rust/events/index.html)查看。
+event在[events](https://docs.rs/coolq-sdk-rust/0.1.0-alpha.3/coolq_sdk_rust/events/index.html)查看。
 
 priority可选，为[highest, high, medium, low]。缺省为medium。
 只有开启了`full-priority`才有效，否则请缺省。
