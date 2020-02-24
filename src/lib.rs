@@ -98,7 +98,7 @@ pub mod prelude {
     pub use crate::{
         api::*,
         events::*,
-        targets::{cqcode::CQStr, message::Message},
+        targets::{cqcode::*, message::*, user::User, group::Group, File, Anonymous},
     };
     pub use cqrs_macro::listener;
 }
