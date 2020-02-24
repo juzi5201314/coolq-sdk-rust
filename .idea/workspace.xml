@@ -14,11 +14,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a88e365e-3801-49d2-9ed4-0397c899e63b" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/cqcode.md" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/message_segment.md" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/coolq-sdk-rust.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/coolq-sdk-rust.iml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/lib.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.toml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -757,25 +754,25 @@
     </state>
     <state x="684" y="330" width="592" height="514" key="FileChooserDialogImpl/0.26.1920.1054@0.26.1920.1054" timestamp="1582447526382" />
     <state x="2604" y="311" key="FileChooserDialogImpl/1920.0.1920.1080/0.26.1920.1054@1920.0.1920.1080" timestamp="1576050829316" />
-    <state width="1872" height="277" key="GridCell.Tab.0.bottom" timestamp="1582523993054">
+    <state width="1872" height="277" key="GridCell.Tab.0.bottom" timestamp="1582528291049">
       <screen x="0" y="26" width="1920" height="1054" />
     </state>
-    <state width="1872" height="277" key="GridCell.Tab.0.bottom/0.26.1920.1054@0.26.1920.1054" timestamp="1582523993054" />
+    <state width="1872" height="277" key="GridCell.Tab.0.bottom/0.26.1920.1054@0.26.1920.1054" timestamp="1582528291049" />
     <state width="1872" height="277" key="GridCell.Tab.0.bottom/1920.0.1920.1080/0.26.1920.1054@1920.0.1920.1080" timestamp="1575958699877" />
-    <state width="1872" height="277" key="GridCell.Tab.0.center" timestamp="1582523993054">
+    <state width="1872" height="277" key="GridCell.Tab.0.center" timestamp="1582528291049">
       <screen x="0" y="26" width="1920" height="1054" />
     </state>
-    <state width="1872" height="277" key="GridCell.Tab.0.center/0.26.1920.1054@0.26.1920.1054" timestamp="1582523993054" />
+    <state width="1872" height="277" key="GridCell.Tab.0.center/0.26.1920.1054@0.26.1920.1054" timestamp="1582528291049" />
     <state width="1872" height="277" key="GridCell.Tab.0.center/1920.0.1920.1080/0.26.1920.1054@1920.0.1920.1080" timestamp="1575958699877" />
-    <state width="1872" height="277" key="GridCell.Tab.0.left" timestamp="1582523993054">
+    <state width="1872" height="277" key="GridCell.Tab.0.left" timestamp="1582528291049">
       <screen x="0" y="26" width="1920" height="1054" />
     </state>
-    <state width="1872" height="277" key="GridCell.Tab.0.left/0.26.1920.1054@0.26.1920.1054" timestamp="1582523993054" />
+    <state width="1872" height="277" key="GridCell.Tab.0.left/0.26.1920.1054@0.26.1920.1054" timestamp="1582528291049" />
     <state width="1872" height="277" key="GridCell.Tab.0.left/1920.0.1920.1080/0.26.1920.1054@1920.0.1920.1080" timestamp="1575958699877" />
-    <state width="1872" height="277" key="GridCell.Tab.0.right" timestamp="1582523993054">
+    <state width="1872" height="277" key="GridCell.Tab.0.right" timestamp="1582528291049">
       <screen x="0" y="26" width="1920" height="1054" />
     </state>
-    <state width="1872" height="277" key="GridCell.Tab.0.right/0.26.1920.1054@0.26.1920.1054" timestamp="1582523993054" />
+    <state width="1872" height="277" key="GridCell.Tab.0.right/0.26.1920.1054@0.26.1920.1054" timestamp="1582528291049" />
     <state width="1872" height="277" key="GridCell.Tab.0.right/1920.0.1920.1080/0.26.1920.1054@1920.0.1920.1080" timestamp="1575958699877" />
     <state x="1014" y="286" width="605" height="565" key="MultipleFileMergeDialog" timestamp="1582525774815">
       <screen x="0" y="26" width="1920" height="1054" />
