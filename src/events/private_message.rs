@@ -1,7 +1,9 @@
 use std::os::raw::c_char;
 
-use crate::targets::message::{Message, SendMessage};
-use crate::targets::user::User;
+use crate::targets::{
+    message::{Message, SendMessage},
+    user::User,
+};
 
 #[derive(Debug)]
 pub enum PrivateMessageType {
@@ -44,7 +46,7 @@ impl PrivateMessageEvent {
         &self.msg
     }
 
-    pub fn reply(&self, msg: &str) -> crate::api::Result<i32> {
+    pub fn reply(&self, msg: impl ToString) -> crate::api::Result<i32> {
         self.user.send_message(msg)
     }
 

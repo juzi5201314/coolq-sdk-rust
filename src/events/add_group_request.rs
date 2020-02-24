@@ -1,8 +1,9 @@
 use std::os::raw::c_char;
 
-use crate::api::{set_group_add_request_v2, Convert, Flag};
-use crate::targets::group::Group;
-use crate::targets::user::User;
+use crate::{
+    api::{set_group_add_request_v2, Convert, Flag},
+    targets::{group::Group, user::User},
+};
 
 #[derive(Debug)]
 pub struct AddGroupRequestEvent {
@@ -16,11 +17,7 @@ pub struct AddGroupRequestEvent {
 
 impl AddGroupRequestEvent {
     pub fn new(
-        sub_type: i32,
-        send_time: i32,
-        group_id: i64,
-        user_id: i64,
-        msg: *const c_char,
+        sub_type: i32, send_time: i32, group_id: i64, user_id: i64, msg: *const c_char,
         flag: *const c_char,
     ) -> Self {
         AddGroupRequestEvent {

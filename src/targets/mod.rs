@@ -1,10 +1,11 @@
 use std::io::{Cursor, Read, Result as IOResult};
-use std::os::raw::c_char;
 
 use byteorder::{BigEndian, ReadBytesExt};
 
-use crate::api::{set_group_anonymous_ban, Convert, Flag};
-use crate::utf8;
+use crate::{
+    api::{set_group_anonymous_ban, Convert, Flag},
+    iconv::IconvDecodable,
+};
 
 pub mod cqcode;
 pub mod message;
@@ -30,7 +31,7 @@ pub trait ReadString: Read {
         if len > 0 {
             let mut v = vec![0u8; len as usize];
             self.read_exact(&mut v)?;
-            Ok(utf8!(v.as_slice().as_ptr() as *const c_char))
+            Ok(v.decode_with_encoding("GB18030").unwrap())
         } else {
             Ok(String::new())
         }

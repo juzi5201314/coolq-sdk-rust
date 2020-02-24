@@ -25,13 +25,13 @@
 //! ```should_panic
 //! // build.rs
 //! fn main() {
-//!    coolq_sdk_rust::gen_app_json::AppJson::new("dev.gugugu.example")
-//!        .name("rust-sdk-example".to_owned())
-//!        .version("0.0.1".to_owned())
-//!        .version_id(1)
-//!        .author("soeur <me@gugugu.dev>".to_owned())
-//!        .description("rust sdk example.".to_owned())
-//!        .finish()
+//!     coolq_sdk_rust::gen_app_json::AppJson::new("dev.gugugu.example")
+//!         .name("rust-sdk-example".to_owned())
+//!         .version("0.0.1".to_owned())
+//!         .version_id(1)
+//!         .author("soeur <me@gugugu.dev>".to_owned())
+//!         .description("rust sdk example.".to_owned())
+//!         .finish()
 //! }
 //! ```
 //!
@@ -62,11 +62,13 @@
 //! }
 //! ```
 
-use std::env;
-use std::fs::File;
-use std::io::Write;
-use std::path::Path;
-use std::sync::atomic::{AtomicUsize, Ordering};
+use std::{
+    env,
+    fs::File,
+    io::Write,
+    path::Path,
+    sync::atomic::{AtomicUsize, Ordering},
+};
 
 use serde::Serialize;
 use serde_json::{json, Value};
@@ -165,11 +167,7 @@ impl AppJson {
 
     /// 事件类型，名字，优先度，函数名字。具体查看[酷q文档](https://docs.cqp.im/dev/v9/app.json/event/)
     pub fn add_event(
-        &mut self,
-        _type: usize,
-        name: &str,
-        priority: usize,
-        func_name: &str,
+        &mut self, _type: usize, name: &str, priority: usize, func_name: &str,
     ) -> &mut Self {
         self.event.push(json!({
             "id": EVENT_ID.fetch_add(1, Ordering::SeqCst),

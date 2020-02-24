@@ -13,7 +13,6 @@ fn bench_escape_cqcode(b: &mut Bencher) {
     })
 }
 
-
 #[test]
 fn test() {
     dbg!(escape("&#91;CQ:at&#44;qq=1230&#93;".to_string()));
@@ -25,4 +24,3 @@ fn escape(s: String) -> String {
         .replace("&#93;", "]")
         .replace("&#44;", ",")
 }
-

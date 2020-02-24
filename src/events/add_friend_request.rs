@@ -1,7 +1,9 @@
 use std::os::raw::c_char;
 
-use crate::api::{set_friend_add_request, Convert, Flag};
-use crate::targets::user::User;
+use crate::{
+    api::{set_friend_add_request, Convert, Flag},
+    targets::user::User,
+};
 
 #[derive(Debug)]
 pub struct AddFriendRequestEvent {
@@ -14,11 +16,7 @@ pub struct AddFriendRequestEvent {
 
 impl AddFriendRequestEvent {
     pub fn new(
-        sub_type: i32,
-        send_time: i32,
-        user_id: i64,
-        msg: *const c_char,
-        flag: *const c_char,
+        sub_type: i32, send_time: i32, user_id: i64, msg: *const c_char, flag: *const c_char,
     ) -> Self {
         AddFriendRequestEvent {
             sub_type,

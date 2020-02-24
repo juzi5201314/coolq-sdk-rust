@@ -1,15 +1,21 @@
-use std::convert::TryInto;
-use std::io::{Cursor, Result};
+use std::{
+    convert::TryInto,
+    io::{Cursor, Result},
+};
 
 use byteorder::{BigEndian, ReadBytesExt};
 
-use crate::api::{
-    get_group_info, get_group_member_info_v2, get_group_member_list, send_group_msg,
-    set_group_anonymous, set_group_ban, set_group_kick, set_group_whole_ban, Convert,
+use crate::{
+    api::{
+        get_group_info, get_group_member_info_v2, get_group_member_list, send_group_msg,
+        set_group_anonymous, set_group_ban, set_group_kick, set_group_whole_ban, Convert,
+    },
+    targets::{
+        message::SendMessage,
+        user::{Authority, UserSex},
+        ReadString,
+    },
 };
-use crate::targets::message::SendMessage;
-use crate::targets::user::{UserSex, Authority};
-use crate::targets::ReadString;
 
 #[derive(Debug, Clone)]
 pub enum GroupRole {
@@ -50,8 +56,8 @@ pub struct GroupMember {
 }
 
 impl SendMessage for GroupMember {
-    fn send(&self, msg: &str) -> crate::api::Result<Convert<i32>> {
-        send_group_msg(self.group_id, msg)
+    fn send(&self, msg: impl ToString) -> crate::api::Result<Convert<i32>> {
+        send_group_msg(self.group_id, msg.to_string())
     }
 }
 
@@ -74,7 +80,7 @@ impl GroupMember {
             title: b.read_string()?,
             title_expire_time: b.read_i32::<BigEndian>()?,
             card_changeable: b.read_i32::<BigEndian>()? > 0,
-            authority: Authority::User
+            authority: Authority::User,
         };
         gm.authority = Authority::from_group_member(&gm);
         Ok(gm)
@@ -90,8 +96,8 @@ pub struct Group {
 }
 
 impl SendMessage for Group {
-    fn send(&self, msg: &str) -> crate::api::Result<Convert<i32>> {
-        send_group_msg(self.group_id, msg)
+    fn send(&self, msg: impl ToString) -> crate::api::Result<Convert<i32>> {
+        send_group_msg(self.group_id, msg.to_string())
     }
 }
 

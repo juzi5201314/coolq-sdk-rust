@@ -1,5 +1,4 @@
-use crate::targets::group::Group;
-use crate::targets::user::User;
+use crate::targets::{group::Group, user::User};
 
 #[derive(Debug)]
 pub struct GroupMemberDecreaseEvent {
@@ -12,10 +11,7 @@ pub struct GroupMemberDecreaseEvent {
 
 impl GroupMemberDecreaseEvent {
     pub fn new(
-        sub_type: i32,
-        send_time: i32,
-        group_id: i64,
-        operate_user_id: i64,
+        sub_type: i32, send_time: i32, group_id: i64, operate_user_id: i64,
         being_operate_user_id: i64,
     ) -> Self {
         GroupMemberDecreaseEvent {

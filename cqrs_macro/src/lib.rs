@@ -44,8 +44,7 @@ struct MacroArgs {
 
 #[proc_macro_attribute]
 pub fn listener(
-    attr: proc_macro::TokenStream,
-    item: proc_macro::TokenStream,
+    attr: proc_macro::TokenStream, item: proc_macro::TokenStream,
 ) -> proc_macro::TokenStream {
     let attr2 = attr.clone();
     let args = MacroArgs::from_list(&syn::parse_macro_input!(attr as syn::AttributeArgs)).unwrap();

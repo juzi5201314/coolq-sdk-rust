@@ -1,5 +1,4 @@
-use crate::targets::group::Group;
-use crate::targets::user::User;
+use crate::targets::{group::Group, user::User};
 
 #[derive(Debug)]
 pub struct GroupAdminEvent {

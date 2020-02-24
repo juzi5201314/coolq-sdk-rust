@@ -1,7 +1,5 @@
-use crate::api::Convert;
-use crate::targets::File;
-use std::convert::TryInto;
-use std::os::raw::c_char;
+use crate::{api::Convert, targets::File};
+use std::{convert::TryInto, os::raw::c_char};
 
 #[derive(Debug)]
 pub struct GroupUploadEvent {
@@ -14,11 +12,7 @@ pub struct GroupUploadEvent {
 
 impl GroupUploadEvent {
     pub fn new(
-        sub_type: i32,
-        send_time: i32,
-        group_id: i64,
-        user_id: i64,
-        file: *const c_char,
+        sub_type: i32, send_time: i32, group_id: i64, user_id: i64, file: *const c_char,
     ) -> Self {
         GroupUploadEvent {
             sub_type,

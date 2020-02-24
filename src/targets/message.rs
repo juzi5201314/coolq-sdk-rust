@@ -1,8 +1,9 @@
 use std::fmt::{Debug, Display, Error, Formatter};
 
-use crate::api::{delete_msg, Convert, Result};
-use crate::targets::cqcode;
-use crate::targets::cqcode::CQCode;
+use crate::{
+    api::{delete_msg, Convert, Result},
+    targets::{cqcode, cqcode::CQCode},
+};
 
 #[derive(Debug, Default, Clone)]
 pub struct Message {
@@ -68,13 +69,13 @@ impl Debug for MessageSegment {
 pub(crate) trait SendMessage {
     /// `@return` msg id
     fn send_message(&self, msg: impl ToString) -> Result<i32> {
-        match self.send(msg.to_string().as_ref()) {
+        match self.send(msg) {
             Ok(msg_id) => Ok(msg_id.into()),
             Err(err) => Err(err),
         }
     }
 
-    fn send(&self, msg: &str) -> crate::api::Result<Convert<i32>>;
+    fn send(&self, msg: impl ToString) -> crate::api::Result<Convert<i32>>;
 
     /// type参数暂不支持
     fn send_rps(&self) -> Result<i32> {
@@ -99,11 +100,7 @@ pub(crate) trait SendMessage {
     }
 
     fn send_location(
-        &self,
-        latitude: f32,
-        longitude: f32,
-        title: &str,
-        content: &str,
+        &self, latitude: f32, longitude: f32, title: &str, content: &str,
     ) -> Result<i32> {
         self.send_message(CQCode::Location(
             latitude,
@@ -118,12 +115,7 @@ pub(crate) trait SendMessage {
     }
 
     fn send_music_custom(
-        &self,
-        url: &str,
-        audio: &str,
-        title: &str,
-        content: &str,
-        image: &str,
+        &self, url: &str, audio: &str, title: &str, content: &str, image: &str,
     ) -> Result<i32> {
         self.send_message(CQCode::MusicCustom(
             url.to_owned(),

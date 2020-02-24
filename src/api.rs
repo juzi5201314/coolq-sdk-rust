@@ -1,52 +1,49 @@
 //! # 酷q相关api
 //! 在运行时调用CQP.dll
 
-use std::convert::{TryFrom, TryInto};
-use std::io::Error as IoError;
-use std::os::raw::c_char;
-use std::ptr::null;
+use std::{
+    convert::{TryFrom, TryInto},
+    io::Error as IoError,
+    os::raw::c_char,
+    ptr::null,
+};
 
 use once_cell::sync::OnceCell;
 
-use crate::targets::group::{Group, GroupMember};
-use crate::targets::read_multi_object;
-use crate::targets::user::User;
-use crate::targets::File;
+use crate::targets::{
+    group::{Group, GroupMember},
+    read_multi_object,
+    user::{FriendInfo, User},
+    File,
+};
 
 static AUTH_CODE: OnceCell<i32> = OnceCell::new();
 
 macro_rules! gb18030 {
-    ($str: expr) => {{
-        use encoding::types::Encoding;
-        ::std::ffi::CString::new(
-            encoding::all::GB18030
-                .encode($str, encoding::EncoderTrap::Ignore)
-                .unwrap(),
-        )
-        .unwrap()
-        .into_raw()
+    ($str:expr) => {{
+        use crate::iconv::IconvEncodable;
+        ::std::ffi::CString::new($str.as_bytes().encode_with_encoding("GB18030").unwrap())
+            .unwrap()
+            .into_raw()
     }};
 }
 
 #[doc(hidden)]
 #[macro_export]
 macro_rules! utf8 {
-    ($c_char: expr) => {
+    ($c_char:expr) => {
         unsafe {
-            use encoding::types::Encoding;
-            encoding::all::GB18030
-                .decode(
-                    ::std::ffi::CStr::from_ptr($c_char).to_bytes(),
-                    encoding::DecoderTrap::Ignore,
-                )
-                .unwrap()[..]
-                .to_string()
+            use crate::iconv::IconvDecodable;
+            ::std::ffi::CStr::from_ptr($c_char)
+                .to_bytes()
+                .decode_with_encoding("GB18030")
+                .unwrap()
         }
     };
 }
 
 macro_rules! try_convert_to {
-    ($from:ty, $to:ty, $err: ty, $convert: expr) => {
+    ($from:ty, $to:ty, $err:ty, $convert:expr) => {
         impl TryFrom<Convert<$from>> for $to {
             type Error = $err;
 
@@ -58,7 +55,7 @@ macro_rules! try_convert_to {
 }
 
 macro_rules! convert_to {
-    ($from:ty, $to:ty, $convert: expr) => {
+    ($from:ty, $to:ty, $convert:expr) => {
         impl From<Convert<$from>> for $to {
             fn from(value: Convert<$from>) -> Self {
                 $convert(value.0)
@@ -66,13 +63,13 @@ macro_rules! convert_to {
         }
     };
 
-    ($t: ty) => {
+    ($t:ty) => {
         convert_to!($t, $t, |value| value);
     };
 }
 
 macro_rules! convert_from {
-    ($from:ty, $to:ty, $convert: expr) => {
+    ($from:ty, $to:ty, $convert:expr) => {
         impl From<$from> for Convert<$to> {
             fn from(value: $from) -> Self {
                 Convert($convert(value))
@@ -80,7 +77,7 @@ macro_rules! convert_from {
         }
     };
 
-    ($t: ty) => {
+    ($t:ty) => {
         convert_from!($t, $t, |value| value);
     };
 }
@@ -100,7 +97,11 @@ macro_rules! gen_api_func {
 
         $(#[$doc])*
         pub fn $func($($arg: impl Into<Convert<$t>>),*) -> Result<Convert<$result_t>> {
-            Result::r_from(($cq_func.get().expect("CQP.dll not init."))(AUTH_CODE.get().expect("auth code not found.").clone(), $($arg.into().into()),*).into())
+            unsafe {
+                let lib = libloading::Library::new("CQP.dll").unwrap();
+                Result::r_from(lib.get::<extern "stdcall" fn(i32, $($t),*) -> $result_t>(stringify!($cq_func).as_bytes()).unwrap()(AUTH_CODE.get().expect("auth code not found.").clone(), $($arg.into().into()),*))
+            }
+            //Result::r_from(($cq_func.get().expect("CQP.dll not init."))(AUTH_CODE.get().expect("auth code not found.").clone(), $($arg.into().into()),*).into())
         }
     };
 }
@@ -332,7 +333,7 @@ gen_api_func!(
     /// 获取好友列表
     ///
     /// # Examples
-    (CQ_getFriendList, get_friend_list; => *const c_char),
+    (CQ_getFriendList, get_friend_list; no_cache: i32 => *const c_char),
     (CQ_getStrangerInfo, get_stranger_info; user_id: i64, no_cache: i32 => *const c_char),
     (CQ_addLog, add_log; priority: i32, tag: *const c_char, msg: *const c_char => i32),
     (CQ_getCookies, get_cookies; => *const c_char),
@@ -354,8 +355,8 @@ convert_from!(i32);
 convert_from!(bool);
 convert_from!(String);
 convert_from!(*const c_char, String, |c| utf8!(c));
-convert_from!(&str, *const c_char, |str| gb18030!(str));
-convert_from!(String, *const c_char, |str: String| gb18030!(str.as_ref()));
+convert_from!(&str, *const c_char, |str: &str| gb18030!(str));
+convert_from!(String, *const c_char, |str: String| gb18030!(str.as_str()));
 convert_from!(CQLogLevel, i32, |level| match level {
     CQLogLevel::DEBUG => CQLOG_DEBUG,
     CQLogLevel::INFO => CQLOG_INFO,
@@ -398,6 +399,11 @@ try_convert_to!(*const c_char, User, IoError, |c| User::decode(
 try_convert_to!(*const c_char, File, IoError, |c| File::decode(
     String::from(c).as_bytes()
 ));
+
+try_convert_to!(*const c_char, Vec<FriendInfo>, IoError, |c| {
+    read_multi_object(String::from(c).as_bytes())
+        .and_then(|objs| objs.iter().map(|b| FriendInfo::decode(&b)).collect())
+});
 
 impl<T: ToString> ToString for Convert<T> {
     fn to_string(&self) -> String {

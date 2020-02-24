@@ -7,16 +7,18 @@
 //!
 //! 使用[`check_authority`]来检查用户权限。
 
-use std::convert::TryInto;
-use std::io::Cursor;
-use std::sync::RwLock;
+use std::{convert::TryInto, io::Cursor, sync::RwLock};
 
 use byteorder::{BigEndian, ReadBytesExt};
 
-use crate::api::{get_stranger_info, send_private_msg, Convert};
-use crate::targets::message::SendMessage;
-use crate::targets::ReadString;
-use crate::targets::group::{GroupRole, GroupMember};
+use crate::{
+    api::{get_stranger_info, send_private_msg, Convert},
+    targets::{
+        group::{GroupMember, GroupRole},
+        message::SendMessage,
+        ReadString,
+    },
+};
 
 lazy_static! {
     static ref MasterList: RwLock<Vec<i64>> = RwLock::new(Vec::new());
@@ -79,9 +81,28 @@ impl Authority {
             match gm.role {
                 GroupRole::Member => Authority::User,
                 GroupRole::Admin => Authority::GroupAdmin,
-                GroupRole::Owner => Authority::GroupOwner
+                GroupRole::Owner => Authority::GroupOwner,
             }
         }
+    }
+}
+
+/// get_friend_list
+#[derive(Debug, Clone)]
+pub struct FriendInfo {
+    pub user_id: i64,
+    pub nickname: String,
+    pub remark: String,
+}
+
+impl FriendInfo {
+    pub(crate) fn decode(b: &[u8]) -> std::io::Result<FriendInfo> {
+        let mut b = Cursor::new(&b);
+        Ok(FriendInfo {
+            user_id: b.read_i64::<BigEndian>()?,
+            nickname: b.read_string()?,
+            remark: b.read_string()?,
+        })
     }
 }
 
@@ -95,8 +116,8 @@ pub struct User {
 }
 
 impl SendMessage for User {
-    fn send(&self, msg: &str) -> crate::api::Result<Convert<i32>> {
-        send_private_msg(self.user_id, msg)
+    fn send(&self, msg: impl ToString) -> crate::api::Result<Convert<i32>> {
+        send_private_msg(self.user_id, msg.to_string())
     }
 }
 

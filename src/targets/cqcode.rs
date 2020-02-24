@@ -1,10 +1,14 @@
-use std::collections::HashMap;
-use std::fmt::{Debug, Display, Formatter};
-use std::io::{Error, ErrorKind};
+use std::{
+    collections::HashMap,
+    fmt::{Debug, Display, Formatter},
+    io::{Error, ErrorKind},
+};
 
-use async_std::fs::{copy, File};
-use async_std::io::prelude::WriteExt;
-use async_std::path::Path;
+use async_std::{
+    fs::{copy, File},
+    io::prelude::WriteExt,
+    path::Path,
+};
 use hex::ToHex;
 use md5::Digest;
 use regex::Regex;
@@ -48,7 +52,7 @@ impl Display for CQCode {
             CQCode::Image(img) => format!("[CQ:image,file={}]", img),
             CQCode::Record(file, magic) => {
                 format!("[CQ:record,file={},magic={}]", file, magic.to_string())
-            }
+            },
             CQCode::At(qq) => format!("[CQ:at,qq={}]", qq),
             CQCode::AtAll() => "[CQ:at,qq=all]".to_owned(),
             CQCode::Rps(t) => format!("[CQ:rps,type={}]", t),
@@ -61,7 +65,7 @@ impl Display for CQCode {
             ),
             CQCode::Music(t, id, style) => {
                 format!("[CQ:music,type={},id={},style={}]", t, id, style)
-            }
+            },
             CQCode::MusicCustom(url, audio, title, content, image) => format!(
                 "[CQ:music,type=custom,url={},audio={},title={},content={},image={}]",
                 url, audio, title, content, image
@@ -115,7 +119,7 @@ impl CQImage {
                     copy(path, to).await?;
                 }
                 to.to_str().unwrap().to_owned()
-            }
+            },
             CQImage::Binary(bytes) => {
                 let name = md5::Md5::digest(bytes).encode_hex::<String>();
                 let to = image_dir.join(name);
@@ -123,7 +127,7 @@ impl CQImage {
                     self.save_file(bytes, &to).await?;
                 }
                 to.to_str().unwrap().to_owned()
-            }
+            },
             CQImage::Base64(b64) => {
                 let bytes = base64::decode(b64).expect("Invalid base64 - CQImage");
                 let name = md5::Md5::digest(&bytes).encode_hex::<String>();
@@ -132,7 +136,7 @@ impl CQImage {
                     self.save_file(&bytes, &to).await?;
                 }
                 to.to_str().unwrap().to_owned()
-            }
+            },
         })
     }
 
@@ -209,7 +213,7 @@ pub fn parse(msg: &str) -> Vec<CQCode> {
                     } else {
                         CQCode::At(get_arg("qq").parse::<i64>().unwrap_or(-1))
                     }
-                }
+                },
                 "rps" => CQCode::Sface(get_arg("type").parse::<i32>().unwrap_or(-1)),
                 "shake" => CQCode::Shake(),
                 "location" => CQCode::Location(

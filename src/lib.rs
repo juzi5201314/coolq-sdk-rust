@@ -87,16 +87,19 @@ pub use cqrs_macro::main;
 
 use crate::api::set_fatal;
 
+mod iconv;
+
 pub mod api;
 pub mod events;
 pub mod gen_app_json;
 pub mod targets;
 
 pub mod prelude {
-    pub use crate::api::*;
-    pub use crate::events::*;
-    pub use crate::targets::cqcode::CQStr;
-    pub use crate::targets::message::Message;
+    pub use crate::{
+        api::*,
+        events::*,
+        targets::{cqcode::CQStr, message::Message},
+    };
     pub use cqrs_macro::listener;
 }
 

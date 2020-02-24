@@ -1,7 +1,8 @@
-use crate::api;
-use crate::api::Error;
-use crate::targets::group::Group;
-use crate::targets::user::User;
+use crate::{
+    api,
+    api::Error,
+    targets::{group::Group, user::User},
+};
 
 #[derive(Debug)]
 pub struct GroupBanEvent {
@@ -15,12 +16,8 @@ pub struct GroupBanEvent {
 
 impl GroupBanEvent {
     pub fn new(
-        sub_type: i32,
-        send_time: i32,
-        group_id: i64,
-        operate_user_id: i64,
-        being_operate_user_id: i64,
-        time: i64,
+        sub_type: i32, send_time: i32, group_id: i64, operate_user_id: i64,
+        being_operate_user_id: i64, time: i64,
     ) -> Self {
         GroupBanEvent {
             sub_type,

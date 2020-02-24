@@ -1,10 +1,14 @@
 use std::os::raw::c_char;
 
-use crate::api::{Convert, Flag};
-use crate::targets::group::Group;
-use crate::targets::message::{Message, SendMessage};
-use crate::targets::user::User;
-use crate::targets::Anonymous;
+use crate::{
+    api::{Convert, Flag},
+    targets::{
+        group::Group,
+        message::{Message, SendMessage},
+        user::User,
+        Anonymous,
+    },
+};
 
 #[derive(Debug, Clone)]
 pub struct GroupMessageEvent {
@@ -18,13 +22,8 @@ pub struct GroupMessageEvent {
 
 impl GroupMessageEvent {
     pub fn new(
-        sub_type: i32,
-        msg_id: i32,
-        group_id: i64,
-        user_id: i64,
-        anonymous_flag: *const c_char,
-        msg: *const c_char,
-        font: i32,
+        sub_type: i32, msg_id: i32, group_id: i64, user_id: i64, anonymous_flag: *const c_char,
+        msg: *const c_char, font: i32,
     ) -> Self {
         GroupMessageEvent {
             sub_type,

@@ -14,12 +14,7 @@ pub struct DiscussMessageEvent {
 
 impl DiscussMessageEvent {
     pub fn new(
-        sub_type: i32,
-        msg_id: i32,
-        discuss_id: i64,
-        user_id: i64,
-        msg: *const c_char,
-        font: i32,
+        sub_type: i32, msg_id: i32, discuss_id: i64, user_id: i64, msg: *const c_char, font: i32,
     ) -> Self {
         DiscussMessageEvent {
             sub_type,
