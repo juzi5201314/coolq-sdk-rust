@@ -1,30 +1,34 @@
-# coolq-sdk-rust //重写中
+# README
 
-![build](https://github.com/juzi5201314/coolq-sdk-rust/workflows/build/badge.svg?branch=master)
-![docs.rs](https://docs.rs/coolq-sdk-rust/badge.svg)
-![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/juzi5201314/coolq-sdk-rust)
-![Crates.io](https://img.shields.io/crates/d/coolq-sdk-rust)
-![GitHub](https://img.shields.io/github/license/juzi5201314/coolq-sdk-rust)
-![Crates.io](https://img.shields.io/crates/v/coolq-sdk-rust)
-![GitHub commit activity](https://img.shields.io/github/commit-activity/y/juzi5201314/coolq-sdk-rust)
+## coolq-sdk-rust //重写中
+
+![build](https://github.com/juzi5201314/coolq-sdk-rust/workflows/build/badge.svg?branch=master) ![docs.rs](https://docs.rs/coolq-sdk-rust/badge.svg) ![GitHub code size in bytes](https://img.shields.io/github/languages/code-size/juzi5201314/coolq-sdk-rust) ![Crates.io](https://img.shields.io/crates/d/coolq-sdk-rust) ![GitHub](https://img.shields.io/github/license/juzi5201314/coolq-sdk-rust) ![Crates.io](https://img.shields.io/crates/v/coolq-sdk-rust) ![GitHub commit activity](https://img.shields.io/github/commit-activity/y/juzi5201314/coolq-sdk-rust)
 
 [酷q](http://cqp.cc)的一个sdk。
 
-# Build
+## Build
+
 工具链: `i686-pc-windows-msvc`
+
 ```bash
 cargo build
 ```
 
-# Test
+## Test
+
 ```bash
 cargo test
 ```
 
-# Documentation
-## online
+## Documentation
+
+### online
+
 [Documentation](https://docs.rs/coolq-sdk-rust/) by docs.rs
-## local
+
+### local
+
 ```bash
 cargo doc --no-deps
 ```
+
