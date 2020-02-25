@@ -23,8 +23,8 @@ pub use group_upload::*;
 pub use private_message::*;
 
 #[allow(dead_code)]
-pub type StartEvent = ();
+pub struct StartEvent;
 #[allow(dead_code)]
-pub type ExitEvent = ();
+pub struct ExitEvent;
 #[allow(dead_code)]
-pub type DisableEvent = ();
+pub struct DisableEvent;
