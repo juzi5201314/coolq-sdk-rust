@@ -39,6 +39,7 @@ pub enum CQCode {
     Music(String, i32, i32),
     MusicCustom(String, String, String, String, String),
     Share(String, String, String, String),
+    Contact(i64, String), /// 推荐名片，id为群号/qq号，type为group/qq。
     Unknown(String),
 }
 
@@ -74,7 +75,7 @@ impl Display for CQCode {
                 "[CQ:share,url={},title={},content={},image={}]",
                 url, title, content, image
             ),
-            _ => String::new(),
+            _ => String::from("Unsupported cqcode."),
         };
         write!(f, "{}", s)
     }
@@ -232,6 +233,10 @@ pub fn parse(msg: &str) -> Vec<CQCode> {
                     get_arg("title").to_owned(),
                     get_arg("content").to_owned(),
                     get_arg("image").to_owned(),
+                ),
+                "contact" => CQCode::Contact(
+                    get_arg("id").parse::<i64>().unwrap_or(-1),
+                    get_arg("type").to_owned(),
                 ),
                 _ => CQCode::Unknown(codes.get(0).unwrap().as_str().to_owned()),
             }
