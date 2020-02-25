@@ -16,6 +16,7 @@ use crate::{
         ReadString,
     },
 };
+use serde::export::Result::Ok;
 
 #[derive(Debug, Clone)]
 pub enum GroupRole {
@@ -103,10 +104,13 @@ impl SendMessage for Group {
 
 impl Group {
     pub fn new(group_id: i64) -> Group {
-        get_group_info(group_id, false)
-            .expect("cannot get group info.")
-            .try_into()
-            .expect("cannot decode group")
+        if let Ok(c) = get_group_info(group_id, false) {
+            c.try_into().expect("cannot decode group")
+        } else {
+            let mut group = Group::default();
+            group.group_id = group_id;
+            group
+        }
     }
 
     /// 部分参数如 area、title 等等无法获取到（为空）。要获取全部参数请使用 get_member。

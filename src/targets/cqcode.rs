@@ -39,7 +39,7 @@ pub enum CQCode {
     Music(String, i32, i32),
     MusicCustom(String, String, String, String, String),
     Share(String, String, String, String),
-    Contact(i64, String), /// 推荐名片，id为群号/qq号，type为group/qq。
+    Contact(i64, String), // 推荐名片，id为群号/qq号，type为group/qq。
     Unknown(String),
 }
 

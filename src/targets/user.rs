@@ -62,21 +62,30 @@ impl Authority {
         self <= &authority
     }
 
-    pub fn from_group_member(gm: &GroupMember) -> Authority {
+    pub fn new(id: i64) -> Authority {
         if !SuperAdminList
             .read()
             .expect("cannot read SuperAdminList")
             .iter()
-            .all(|qq| *qq != gm.user_id)
+            .all(|qq| *qq != id)
         {
             Authority::SuperAdmin
         } else if !MasterList
             .read()
             .expect("cannot read MasterList")
             .iter()
-            .all(|qq| *qq != gm.user_id)
+            .all(|qq| *qq != id)
         {
             Authority::Master
+        } else {
+            Authority::User
+        }
+    }
+
+    pub(crate) fn from_group_member(gm: &GroupMember) -> Authority {
+        let authority = Authority::new(gm.user_id);
+        if authority != Authority::User {
+            authority
         } else {
             match gm.role {
                 GroupRole::Member => Authority::User,
@@ -84,6 +93,12 @@ impl Authority {
                 GroupRole::Owner => Authority::GroupOwner,
             }
         }
+    }
+}
+
+impl Default for Authority {
+    fn default() -> Self {
+        Authority::User
     }
 }
 
@@ -106,7 +121,7 @@ impl FriendInfo {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct User {
     pub user_id: i64,
     pub nickname: String,
@@ -141,25 +156,13 @@ impl User {
     //为了防止获取频率过大，所有从事件获取到的User皆是从缓存取的。
     //如果想获得最新信息，请使用update。
     pub(crate) fn new(user_id: i64) -> User {
-        let mut user = get_stranger_info(user_id, false)
-            .expect("cannot get stranger info")
-            .try_to::<User>()
-            .expect("cannot decode User");
-        if !SuperAdminList
-            .read()
-            .expect("cannot read SuperAdminList")
-            .iter()
-            .all(|qq| *qq != user_id)
-        {
-            user.set_authority(Authority::SuperAdmin);
-        } else if !MasterList
-            .read()
-            .expect("cannot read MasterList")
-            .iter()
-            .all(|qq| *qq != user_id)
-        {
-            user.set_authority(Authority::Master);
-        }
+        let mut user: User = if let Ok(c) = get_stranger_info(user_id, false) {
+            c.try_into().expect("cannot decode User")
+        } else {
+            Default::default()
+        };
+        user.user_id = user_id;
+        user.set_authority(Authority::new(user_id));
         user
     }
 
