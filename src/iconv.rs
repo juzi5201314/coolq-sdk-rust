@@ -10,13 +10,17 @@ use std::{
     iter, mem, ptr, str,
 };
 
+use libc::{c_char, c_int, c_void, size_t};
+
 #[allow(dead_code)]
 const DEFAULT_BUF_SIZE: usize = 64 * 1024;
 
-use libc::{c_char, c_int, c_void, size_t};
-
 #[allow(non_camel_case_types)]
 type iconv_t = *mut c_void;
+
+lazy_static! {
+    static ref LIBICONV: libloading::Library = libloading::Library::new("libiconv.dll").unwrap();
+}
 
 /// The representation of a iconv converter
 pub(crate) struct Converter {
@@ -26,12 +30,15 @@ pub(crate) struct Converter {
 impl Converter {
     /// Creates a new Converter from ``from`` encoding and ``to`` encoding.
     pub fn new(from: &str, to: &str) -> Converter {
+        lazy_static! {
+            static ref ICONV_OPEN: extern "C" fn(__tocode: *const c_char, __fromcode: *const c_char) -> iconv_t =
+                unsafe { *LIBICONV.get("libiconv_open".as_bytes(),).unwrap() };
+        };
+
         let from_encoding = CString::new(from).unwrap();
         let to_encoding = CString::new(to).unwrap();
 
-        let handle = unsafe {
-            libloading::Library::new("libiconv.dll").unwrap().get::<extern "C" fn(__tocode: *const c_char, __fromcode: *const c_char) -> iconv_t>("libiconv_open".as_bytes()).unwrap()(to_encoding.as_ptr(), from_encoding.as_ptr())
-        };
+        let handle = ICONV_OPEN(to_encoding.as_ptr(), from_encoding.as_ptr());
         if handle as isize == -1 {
             panic!(
                 "Error creating conversion descriptor from {:} to {:}",
@@ -44,26 +51,24 @@ impl Converter {
     /// Convert from input into output.
     /// Returns (bytes_read, bytes_written, errno).
     pub fn convert(&self, input: &[u8], output: &mut [u8]) -> (usize, usize, c_int) {
-        let input_left = input.len() as size_t;
-        let output_left = output.len() as size_t;
-        let lib = libloading::Library::new("libiconv.dll").unwrap();
-        let iconv = unsafe {
-            lib.get::<extern "C" fn(
+        lazy_static! {
+            static ref ICONV: extern "C" fn(
                 __cd: iconv_t,
                 __inbuf: *mut *mut c_char,
                 __inbytesleft: *mut size_t,
                 __outbuf: *mut *mut c_char,
                 __outbytesleft: *mut size_t,
-            ) -> size_t>("libiconv".as_bytes())
-                .unwrap()
+            ) -> size_t = unsafe { *LIBICONV.get("libiconv".as_bytes()).unwrap() };
         };
 
+        let input_left = input.len() as size_t;
+        let output_left = output.len() as size_t;
         if input_left > 0 && output_left > 0 {
             let input_ptr = input.as_ptr();
             let output_ptr = output.as_ptr();
 
             let ret = unsafe {
-                iconv(
+                ICONV(
                     self.cd,
                     mem::transmute(&input_ptr),
                     mem::transmute(&input_left),
@@ -87,7 +92,7 @@ impl Converter {
             let output_ptr = output.as_ptr();
 
             let ret = unsafe {
-                iconv(
+                ICONV(
                     self.cd,
                     ptr::null_mut::<*mut c_char>(),
                     mem::transmute(&input_left),
@@ -109,7 +114,7 @@ impl Converter {
             );
         } else {
             let ret = unsafe {
-                iconv(
+                ICONV(
                     self.cd,
                     ptr::null_mut::<*mut c_char>(),
                     mem::transmute(&input_left),
@@ -125,12 +130,11 @@ impl Converter {
 
 impl Drop for Converter {
     fn drop(&mut self) {
-        unsafe {
-            libloading::Library::new("libiconv.dll")
-                .unwrap()
-                .get::<extern "C" fn(__cd: iconv_t) -> c_int>("libiconv_close".as_bytes())
-                .unwrap()(self.cd)
+        lazy_static! {
+            static ref ICONV_CLOSE: extern "C" fn(__cd: iconv_t) -> c_int =
+                unsafe { *LIBICONV.get("libiconv_close".as_bytes()).unwrap() };
         };
+        ICONV_CLOSE(self.cd);
     }
 }
 
