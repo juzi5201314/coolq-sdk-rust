@@ -136,6 +136,7 @@ pub struct AppJson {
     description: String,
     auth: Vec<usize>,
     event: Vec<Value>,
+    menu: Vec<Value>
 }
 
 impl AppJson {
@@ -162,6 +163,14 @@ impl AppJson {
 
     pub fn add_auth(&mut self, auth: usize) -> &mut Self {
         self.auth.push(auth);
+        self
+    }
+
+    pub fn add_menu(&mut self, name: &str, func_name: &str) -> &mut Self {
+        self.menu.push(json! ({
+            "name": name,
+            "function": func_name
+        }));
         self
     }
 
@@ -307,6 +316,7 @@ impl Default for AppJson {
                 20, 30, 101, 103, 106, 110, 120, 121, 122, 123, 124, 125, 126, 127, 128, 130, 131,
                 132, 140, 150, 151, 160, 161, 162, 180,
             ],
+            menu: Vec::new()
         }
     }
 }
