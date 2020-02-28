@@ -1,18 +1,24 @@
 use std::{
     collections::HashMap,
     fmt::{Debug, Display, Formatter},
-    io::{Error, ErrorKind},
 };
 
+#[cfg(feature = "enhanced-cqcode")]
+use std::io::{Error, ErrorKind};
+
+#[cfg(feature = "enhanced-cqcode")]
 use async_std::{
     fs::{copy, File},
     io::prelude::WriteExt,
     path::Path,
 };
+#[cfg(feature = "enhanced-cqcode")]
 use hex::ToHex;
+#[cfg(feature = "enhanced-cqcode")]
 use md5::Digest;
 use regex::Regex;
 
+#[cfg(feature = "enhanced-cqcode")]
 use crate::api::get_app_directory;
 
 lazy_static! {
@@ -85,10 +91,13 @@ impl Display for CQCode {
 pub enum CQImage {
     /// 默认发送data\image\{image}。"xx.jpg"
     Default(String),
+    #[cfg(feature = "enhanced-cqcode")]
     /// 发送指定目录下的{image}。该目录必须可读。"/home/me/xx.jpg"
     File(String),
+    #[cfg(feature = "enhanced-cqcode")]
     /// 发送base64编码的图片。"JXU2MThCJXU4QkY0JXU4QkREJXVGRjBDJXU1NDNCJXU2MjEx"
     Base64(String),
+    #[cfg(feature = "enhanced-cqcode")]
     /// 发送二进制图片。"很明显，这个没办法演示给你看"
     Binary(Vec<u8>),
 }
@@ -97,14 +106,18 @@ impl CQImage {
     /// 有阻塞版本[`to_file_name_blocking`]
     pub async fn to_file_name(&self) -> std::io::Result<String> {
         // 插件数据目录在data\app\appid，借此来获取data目录。
-        let image_dir = Path::new(&get_app_directory().unwrap().to::<String>())
+        #[cfg(feature = "enhanced-cqcode")]
+            let image_dir = Path::new(&get_app_directory().unwrap().to::<String>())
             .parent()
             .unwrap()
             .parent()
             .unwrap()
             .join("image");
+
         Ok(match self {
             CQImage::Default(img) => img.clone(),
+
+            #[cfg(feature = "enhanced-cqcode")]
             CQImage::File(path) => {
                 let path = Path::new(path);
                 if !path.exists().await && !path.is_file().await {
@@ -121,6 +134,8 @@ impl CQImage {
                 }
                 to.to_str().unwrap().to_owned()
             },
+
+            #[cfg(feature = "enhanced-cqcode")]
             CQImage::Binary(bytes) => {
                 let name = md5::Md5::digest(bytes).encode_hex::<String>();
                 let to = image_dir.join(name);
@@ -129,6 +144,8 @@ impl CQImage {
                 }
                 to.to_str().unwrap().to_owned()
             },
+
+            #[cfg(feature = "enhanced-cqcode")]
             CQImage::Base64(b64) => {
                 let bytes = base64::decode(b64).expect("Invalid base64 - CQImage");
                 let name = md5::Md5::digest(&bytes).encode_hex::<String>();
@@ -141,12 +158,14 @@ impl CQImage {
         })
     }
 
+    #[cfg(feature = "enhanced-cqcode")]
     async fn save_file(&self, data: &[u8], path: &Path) -> std::io::Result<()> {
         let mut file = File::create(path).await?;
         file.write_all(data).await?;
         file.sync_all().await
     }
 
+    #[cfg(feature = "enhanced-cqcode")]
     /// 有异步版本[`to_file_name`]
     pub fn to_file_name_blocking(&self) -> std::io::Result<String> {
         async_std::task::block_on(async { self.to_file_name().await })
