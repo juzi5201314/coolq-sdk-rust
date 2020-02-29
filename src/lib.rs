@@ -96,7 +96,7 @@ pub mod targets;
 
 pub mod prelude {
     pub use crate::{
-        api::*,
+        api::{self, Convert, CQLogLevel},
         events::*,
         targets::{cqcode::*, group::Group, message::*, user::User, Anonymous, File},
     };

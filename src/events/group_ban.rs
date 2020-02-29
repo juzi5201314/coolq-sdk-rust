@@ -4,7 +4,7 @@ use crate::{
     targets::{group::Group, user::User},
 };
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct GroupBanEvent {
     pub sub_type: i32,
     pub send_time: i32,

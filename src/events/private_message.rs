@@ -5,7 +5,7 @@ use crate::targets::{
     user::User,
 };
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum PrivateMessageType {
     Friend,
     Group,

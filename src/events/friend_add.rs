@@ -1,6 +1,6 @@
 use crate::targets::user::User;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct FriendAddEvent {
     pub sub_type: i32,
     pub send_time: i32,

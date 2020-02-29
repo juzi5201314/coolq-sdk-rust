@@ -1,7 +1,7 @@
 use crate::{api::Convert, targets::File};
 use std::{convert::TryInto, os::raw::c_char};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct GroupUploadEvent {
     pub sub_type: i32,
     pub send_time: i32,

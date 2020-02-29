@@ -2,7 +2,7 @@
 
 use std::os::raw::c_char;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct DiscussMessageEvent {
     pub sub_type: i32,
     pub msg_id: i32,
