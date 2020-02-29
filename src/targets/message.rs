@@ -66,7 +66,7 @@ impl Debug for MessageSegment {
     }
 }
 
-pub(crate) trait SendMessage {
+pub trait SendMessage {
     /// `@return` msg id
     fn send_message(&self, msg: impl ToString) -> Result<i32> {
         match self.send(msg) {
