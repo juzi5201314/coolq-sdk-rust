@@ -107,7 +107,7 @@ impl CQImage {
     pub async fn to_file_name(&self) -> std::io::Result<String> {
         // 插件数据目录在data\app\appid，借此来获取data目录。
         #[cfg(feature = "enhanced-cqcode")]
-            let image_dir = Path::new(&get_app_directory().unwrap().to::<String>())
+        let image_dir = Path::new(&get_app_directory().unwrap().to::<String>())
             .parent()
             .unwrap()
             .parent()
@@ -233,7 +233,7 @@ pub fn parse(msg: &str) -> Vec<CQCode> {
                     } else {
                         CQCode::At(get_arg("qq").parse::<i64>().unwrap_or(-1))
                     }
-                },
+                }
                 "rps" => CQCode::Sface(get_arg("type").parse::<i32>().unwrap_or(-1)),
                 "shake" => CQCode::Shake(),
                 "location" => CQCode::Location(
