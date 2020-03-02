@@ -3,12 +3,14 @@ use std::os::raw::c_char;
 use crate::{
     api::{Convert, Flag},
     targets::{
+        Anonymous,
         group::Group,
         message::{Message, SendMessage},
         user::User,
-        Anonymous,
     },
 };
+use crate::api::get_group_member_info_v2;
+use crate::targets::group::GroupMember;
 
 #[derive(Debug, Clone)]
 pub struct GroupMessageEvent {
@@ -31,7 +33,13 @@ impl GroupMessageEvent {
             msg: Message::new(msg, msg_id),
             font,
             group: Group::new(group_id),
-            user: User::new(user_id),
+            user: {
+                let mut user = User::new(user_id);
+                if let Ok(gm) = get_group_member_info_v2(group_id, user_id, false) {
+                    user.set_authority(gm.try_to::<GroupMember>().unwrap().authority);
+                }
+                user
+            },
         }
     }
 
