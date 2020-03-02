@@ -52,6 +52,10 @@ impl MessageSegment {
         self.0.push_str(msg.to_string().as_ref());
         self
     }
+
+    pub fn newline(&mut self) -> &mut Self {
+        self.add("\n")
+    }
 }
 
 impl Display for MessageSegment {
