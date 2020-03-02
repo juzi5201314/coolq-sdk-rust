@@ -56,6 +56,10 @@ impl MessageSegment {
     pub fn newline(&mut self) -> &mut Self {
         self.add("\n")
     }
+
+    pub fn newlines(&mut self, count: usize) -> &mut Self {
+        self.add("\n".repeat(count))
+    }
 }
 
 impl Display for MessageSegment {
