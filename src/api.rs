@@ -16,6 +16,7 @@ use crate::targets::{
     user::{FriendInfo, User},
     File,
 };
+use serde::export::Formatter;
 
 static AUTH_CODE: OnceCell<i32> = OnceCell::new();
 
@@ -432,6 +433,12 @@ pub struct Convert<T>(T);
 
 #[derive(Debug)]
 pub struct Error;
+
+impl std::fmt::Display for Error {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(f, "COOLQ API ERROR.")
+    }
+}
 
 /// 返回api是否调用成功。
 ///
