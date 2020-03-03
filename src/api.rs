@@ -9,14 +9,15 @@ use std::{
 };
 
 use once_cell::sync::OnceCell;
+use serde::export::Formatter;
 
 use crate::targets::{
-    group::{Group, GroupMember},
-    read_multi_object,
-    user::{FriendInfo, User},
     File,
+    group::{Group, GroupMember},
+    message::MessageSegment,
+    read_multi_object,
+    user::{FriendInfo, User}
 };
-use serde::export::Formatter;
 
 static AUTH_CODE: OnceCell<i32> = OnceCell::new();
 
@@ -371,6 +372,7 @@ convert_from!(CQLogLevel, i32, |level| match level {
 convert_from!(bool, i32, |b| b as i32);
 convert_from!(*const c_char);
 convert_from!((), i32, |_| 0); // 为了支持listener可以返回空()
+convert_from!(MessageSegment, String, |ms: MessageSegment| ms.to_string());
 
 convert_to!(i64);
 convert_to!(i32);
