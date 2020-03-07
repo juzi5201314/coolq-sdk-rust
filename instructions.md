@@ -79,24 +79,26 @@ fn private_msg(event: &mut PrivateMessageEvent) {
 }
 
 #[listener]
-fn this_is_group_msg(event: &mut GroupMessageEvent) {
+async fn this_is_group_msg(event: &mut GroupMessageEvent) {
 
 }
 ```
 
-main宏必须要写，main函数在插件enable事件时调用。
+[async函数的更多例子...](https://docs.rs/coolq-sdk-rust)
 
-event在[events](https://docs.rs/coolq-sdk-rust/latest/coolq_sdk_rust/events/index.html)查看。
+- main宏必须要写，main函数在插件enable事件时调用。
 
-priority可选，为\[highest, high, medium, low\]。缺省为medium。 只有开启了`full-priority`才有效，否则请缺省。
+- event在[events](https://docs.rs/coolq-sdk-rust/latest/coolq_sdk_rust/events/index.html)查看。
+
+- priority可选，为\[highest, high, medium, low\]。缺省为medium。 只有开启了`full-priority`才有效，否则将不会被调用。
 
 
 ## listener的返回值与事件拦截
 listener函数可以有3种返回值:
 空元组，i32，bool。
 
-默认返回空元组；不拦截事件  
+* 默认返回空元组；不拦截事件  
 
-i32：0为不拦截，1反之
+* i32：0为不拦截，1反之
 
-bool：false为不拦截，true反之
+* bool：false为不拦截，true反之
