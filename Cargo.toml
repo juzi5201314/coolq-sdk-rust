@@ -25,7 +25,6 @@ libc = "0.2.67"
 
 [features]
 default = []
-full-priority = []
 enhanced-cqcode = ["tokio", "hex", "md-5"]
 
 [workspace]

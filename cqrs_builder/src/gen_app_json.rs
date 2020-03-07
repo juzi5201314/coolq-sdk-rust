@@ -1,31 +1,20 @@
 //! 在编译时生成app.json
 //!
-//! 默认情况下，事件回调函数全部为中优先级，方法如 `CQP::on_private_msg`
+//! 默认情况下，事件回调函数全部为中优先级
 //!
 //! 若要启用全部优先级，请打开 full-priority feature:
 //!
 //! Cargo.toml
 //! ```toml
 //! [build-dependencies]
-//! coolq-sdk-rust = { ... features = ["full-priority"] } # 在dependencies中打开feature，才会生成对应的函数
+//! cqrs_builder = { version = "0.1", features = ["full-priority"] } # 在dependencies中打开feature，才会生成对应的函数
 //! ```
-//! 然后CQP trait里的事件方法全部更改为如:
-//!
-//! `on_private_msg_highest`
-//!
-//! `on_private_msg_high`
-//!
-//! `on_private_msg_medium`
-//!
-//! `on_private_msg_low`
-//!
-//! 代表最高，高，中，低 优先级
 //!
 //! # Examples
 //! ```should_panic
 //! // build.rs
 //! fn main() {
-//!     coolq_sdk_rust::gen_app_json::AppJson::new("dev.gugugu.example")
+//!     cqrs_builder::AppJson::new("dev.gugugu.example")
 //!         .name("rust-sdk-example".to_owned())
 //!         .version("0.0.1".to_owned())
 //!         .version_id(1)
@@ -39,7 +28,7 @@
 //! ```should_panic
 //! // build.rs
 //! fn main() {
-//!     coolq_sdk_rust::gen_app_json::AppJson::new("dev.gugugu.example")
+//!     cqrs_builder::AppJson::new("dev.gugugu.example")
 //!         // .name .version...
 //!         .no_default_event()
 //!         .add_event(1003, "插件启用", 30000, "cq_on_plugin_enable")
@@ -52,7 +41,7 @@
 //! ```should_panic
 //! // build.rs
 //! fn main() {
-//!     coolq_sdk_rust::gen_app_json::AppJson::new("dev.gugugu.example")
+//!     cqrs_builder::AppJson::new("dev.gugugu.example")
 //!         // .name .version...
 //!         .no_default_auth()
 //!         .add_auth(20)
