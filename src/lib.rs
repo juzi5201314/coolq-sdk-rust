@@ -91,7 +91,6 @@ mod iconv;
 
 pub mod api;
 pub mod events;
-pub mod gen_app_json;
 pub mod targets;
 
 pub mod prelude {

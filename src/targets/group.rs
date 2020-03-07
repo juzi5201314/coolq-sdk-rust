@@ -16,7 +16,6 @@ use crate::{
         ReadString,
     },
 };
-use serde::export::Result::Ok;
 
 #[derive(Debug, Clone)]
 pub enum GroupRole {

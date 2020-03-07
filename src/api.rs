@@ -7,9 +7,9 @@ use std::{
     os::raw::c_char,
     ptr::null,
 };
+use std::fmt::Formatter;
 
 use once_cell::sync::OnceCell;
-use serde::export::Formatter;
 
 use crate::targets::{
     File,
