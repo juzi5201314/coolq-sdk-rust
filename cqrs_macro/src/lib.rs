@@ -50,11 +50,17 @@ pub fn main(_: proc_macro::TokenStream, item: proc_macro::TokenStream) -> proc_m
         #[no_mangle]
         pub extern "stdcall" fn on_enable() -> i32 {
             #(#attrs)*
+            #[inline]
             #func
             #call
             0
         }
     }).into()
+}
+
+#[proc_macro_attribute]
+pub fn block_on(_: proc_macro::TokenStream, item: proc_macro::TokenStream) -> proc_macro::TokenStream {
+    item
 }
 
 #[derive(Debug, FromMeta)]
@@ -75,10 +81,8 @@ pub fn listener(
 
     let find_event_name = || -> Option<String> {
         if let FnArg::Typed(t) = &func.sig.inputs.first()? {
-            if let syn::Type::Reference(tr) = t.ty.borrow() {
-                if let syn::Type::Path(tp) = tr.elem.borrow() {
-                    return Some((&tp.path.segments.first()?.ident).to_string())
-                }
+            if let syn::Type::Path(tr) = t.ty.borrow() {
+                return Some((&tr.path.segments.first()?.ident).to_string())
             }
         }
         None
@@ -86,7 +90,7 @@ pub fn listener(
     let event_name = match find_event_name() {
         Some(some) => some,
         None => {
-            error!(&func.sig.inputs.first(), r#"The first parameter of the function must be "event: &mut [AnyEvent]"."#)
+            error!(&func.sig.inputs.first(), r#"The first parameter of the function must be "event: [AnyEvent]"."#)
         }
     };
 
@@ -107,13 +111,21 @@ pub fn listener(
             if cfg!(not(feature = "async-listener")) {
                 error!(&func.sig.asyncness, "No 'async-listener' feature support.")
             }
-            quote! {
-                coolq_sdk_rust::ASYNC_RUNTIME.spawn(#func_name(&mut coolq_sdk_rust::events::#event::new(#args_name)));
-                0
+            if attrs.iter().find(|attr|
+                attr.path.segments.iter().find(|ps|
+                    ps.ident.to_string() == "block_on").is_some()).is_some() {
+                quote! {
+                    coolq_sdk_rust::api::Convert::from(coolq_sdk_rust::block_on(#func_name(coolq_sdk_rust::events::#event::new(#args_name)))).into()
+                }
+            } else {
+                quote! {
+                    coolq_sdk_rust::ASYNC_RUNTIME.spawn(#func_name(coolq_sdk_rust::events::#event::new(#args_name)));
+                    0
+                }
             }
         } else {
             quote! {
-                Convert::from(#func_name(&mut coolq_sdk_rust::events::#event::new(#args_name))).into()
+                coolq_sdk_rust::api::Convert::from(#func_name(coolq_sdk_rust::events::#event::new(#args_name))).into()
             }
         };
 
@@ -121,6 +133,7 @@ pub fn listener(
             #[no_mangle]
             pub extern "stdcall" fn #extern_func_name(#args_name_t) -> #result_type {
                 #(#attrs)*
+                #[inline]
                 #func
                 #call
             }

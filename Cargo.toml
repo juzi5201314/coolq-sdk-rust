@@ -26,12 +26,12 @@ md-5 = { version = "0.8.0", optional = true }
 hex = { version = "0.4.1", optional = true }
 cqrs_macro = { version = "0.1", path = "cqrs_macro" }
 libc = "0.2.67"
-doc-cfg = "0.1"
+futures = { version = "0.3.4", optional = true }
 
 [features]
 default = []
 enhanced-cqcode = ["tokio", "hex", "md-5"]
-async-listener = ["cqrs_macro/async-listener", "tokio"]
+async-listener = ["cqrs_macro/async-listener", "tokio", "futures"]
 async-threaded = ["async-listener", "tokio/rt-threaded"]
 
 [workspace]

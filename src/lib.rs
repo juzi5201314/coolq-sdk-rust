@@ -105,17 +105,25 @@ pub mod prelude {
         targets::{cqcode::*, group::Group, message::*, user::User, Anonymous, File},
     };
     pub use cqrs_macro::listener;
+    pub use cqrs_macro::block_on;
 }
 
 #[cfg(feature = "async-listener")]
 use {
     tokio::runtime::Runtime,
-    once_cell::sync::Lazy
+    once_cell::sync::Lazy,
+    futures::Future
 };
 
 #[doc(hidden)]
 #[cfg(feature = "async-listener")]
 pub static ASYNC_RUNTIME: Lazy<Runtime> = Lazy::new(|| Runtime::new().unwrap());
+
+#[doc(hidden)]
+#[cfg(feature = "async-listener")]
+pub fn block_on<F: Future>(f: F) -> F::Output {
+    Runtime::new().unwrap().block_on(f)
+}
 
 pub const APIVER: usize = 9;
 
