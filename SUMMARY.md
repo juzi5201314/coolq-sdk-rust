@@ -2,6 +2,6 @@
 
 * [README](README.md)
 * [开始](instructions.md)
-* [cqcode](cqcode.md)
+* [cq码](cqcode.md)
 * [MessageSegment](message_segment.md)
-
+* [更新日志](update_log.md)
