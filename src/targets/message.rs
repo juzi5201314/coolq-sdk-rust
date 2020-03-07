@@ -24,6 +24,7 @@ impl Message {
         }
     }
 
+    /// 撤回消息
     pub fn delete(&self) -> bool {
         delete_msg(self.msg_id).is_ok()
     }
@@ -32,7 +33,7 @@ impl Message {
         self.cqcodes.iter().count() != 0
     }
 
-    //将因为防止与cq码混淆而转义的字符还原
+    // 将因为防止与cq码混淆而转义的字符还原
     fn escape(s: String) -> String {
         s.replace("&amp;", "&")
             .replace("&#91;", "[")
@@ -41,6 +42,19 @@ impl Message {
     }
 }
 
+/// Examples:
+/// ```
+/// use coolq_sdk_rust::targets::message::MessageSegment;
+///
+/// let msg = MessageSegment::new()
+///             .add("hi")
+///             .newline()
+///             .face(10);
+///
+/// // xx.send_message(msg);
+/// // api::send_private_msg(qq, msg);
+/// // event.reply(msg);
+/// ```
 #[derive(Clone)]
 pub struct MessageSegment(String);
 
