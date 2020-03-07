@@ -107,6 +107,16 @@ pub mod prelude {
     pub use cqrs_macro::listener;
 }
 
+#[cfg(feature = "async-listener")]
+use {
+    tokio::runtime::Runtime,
+    once_cell::sync::Lazy
+};
+
+#[doc(hidden)]
+#[cfg(feature = "async-listener")]
+pub static ASYNC_RUNTIME: Lazy<Runtime> = Lazy::new(|| Runtime::new().unwrap());
+
 pub const APIVER: usize = 9;
 
 #[doc(hidden)]

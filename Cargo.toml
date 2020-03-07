@@ -1,13 +1,13 @@
 [package]
 name = "coolq-sdk-rust"
-version = "0.1.10"
+version = "0.1.11"
 authors = ["soeur <juzi201314@gmail.com>"]
 edition = "2018"
 license = "MIT"
 description = "A sdk for coolq"
 documentation = "https://docs.rs/coolq-sdk-rust/"
 repository = "https://github.com/juzi5201314/coolq-sdk-rust"
-keywords = ["coolq"]
+keywords = ["coolq", "qq", "sdk", "cqp"]
 readme = "README.md"
 
 [package.metadata.docs.rs]
@@ -31,6 +31,8 @@ doc-cfg = "0.1"
 [features]
 default = []
 enhanced-cqcode = ["tokio", "hex", "md-5"]
+async-listener = ["cqrs_macro/async-listener", "tokio"]
+async-threaded = ["async-listener", "tokio/rt-threaded"]
 
 [workspace]
 members = ["cqrs_macro", "cqrs_builder"]

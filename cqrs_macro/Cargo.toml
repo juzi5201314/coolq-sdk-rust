@@ -14,3 +14,6 @@ quote = "1.0.2"
 syn = { version = "1.0.14", features = ["full"] }
 darling = "0.10.2"
 proc-macro2 = "1.0.8"
+
+[features]
+async-listener = []

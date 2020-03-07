@@ -1,3 +1,5 @@
+#![allow(unused_variables)]
+
 extern crate proc_macro;
 
 use darling::FromMeta;
@@ -26,6 +28,19 @@ pub fn main(_: proc_macro::TokenStream, item: proc_macro::TokenStream) -> proc_m
         error!(func.sig.output, "should return '()'.")
     }
 
+    let call = if func.sig.asyncness.is_some() {
+        if cfg!(not(feature = "async-listener")) {
+            error!(&func.sig.asyncness, "No 'async-listener' feature support.")
+        }
+        quote! {
+            coolq_sdk_rust::ASYNC_RUNTIME.spawn(#func_name());
+        }
+    } else {
+        quote! {
+            #func_name();
+        }
+    };
+
     (quote! {
         #[export_name = "AppInfo"]
         pub extern "stdcall" fn app_info() -> *const ::std::os::raw::c_char {
@@ -36,7 +51,7 @@ pub fn main(_: proc_macro::TokenStream, item: proc_macro::TokenStream) -> proc_m
         pub extern "stdcall" fn on_enable() -> i32 {
             #(#attrs)*
             #func
-            #func_name();
+            #call
             0
         }
     }).into()
@@ -71,7 +86,7 @@ pub fn listener(
     let event_name = match find_event_name() {
         Some(some) => some,
         None => {
-            error!(&func.sig.inputs, "fn funcname(event: &mut [AnyEvent])")
+            error!(&func.sig.inputs.first(), r#"The first parameter of the function must be "event: &mut [AnyEvent]"."#)
         }
     };
 
@@ -87,16 +102,31 @@ pub fn listener(
         let args_name_t = extern_func_info.1.parse::<TokenStream>().unwrap();
         let args_name = extern_func_info.2.parse::<TokenStream>().unwrap();
         let result_type = extern_func_info.3.parse::<TokenStream>().unwrap();
+
+        let call = if func.sig.asyncness.is_some() {
+            if cfg!(not(feature = "async-listener")) {
+                error!(&func.sig.asyncness, "No 'async-listener' feature support.")
+            }
+            quote! {
+                coolq_sdk_rust::ASYNC_RUNTIME.spawn(#func_name(&mut coolq_sdk_rust::events::#event::new(#args_name)));
+                0
+            }
+        } else {
+            quote! {
+                Convert::from(#func_name(&mut coolq_sdk_rust::events::#event::new(#args_name))).into()
+            }
+        };
+
         (quote! {
             #[no_mangle]
             pub extern "stdcall" fn #extern_func_name(#args_name_t) -> #result_type {
                 #(#attrs)*
                 #func
-                Convert::from(#func_name(&mut coolq_sdk_rust::events::#event::new(#args_name))).into()
+                #call
             }
         }).into()
     } else {
-        error!(&func.sig.inputs.first().unwrap(), "Cannot find this event.")
+        error!(&func.sig.inputs.first(), "Cannot find this event.")
     }
 }
 
