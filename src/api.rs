@@ -372,7 +372,7 @@ convert_from!(CQLogLevel, i32, |level| match level {
 convert_from!(bool, i32, |b| b as i32);
 convert_from!(*const c_char);
 convert_from!((), i32, |_| 0); // 为了支持listener可以返回空()
-convert_from!(MessageSegment, String, |ms: MessageSegment| ms.to_string());
+convert_from!(&MessageSegment, *const c_char, |ms: &MessageSegment| gb18030!(ms.to_string()));
 
 convert_to!(i64);
 convert_to!(i32);
@@ -434,11 +434,11 @@ impl<F> Convert<F> {
 pub struct Convert<T>(T);
 
 #[derive(Debug)]
-pub struct Error;
+pub struct Error(pub i32);
 
 impl std::fmt::Display for Error {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        write!(f, "COOLQ API ERROR.")
+        write!(f, "COOLQ API ERROR({}).", self.0)
     }
 }
 
@@ -457,7 +457,7 @@ impl AFrom<i32> for Result<Convert<i32>> {
         if i >= 0 {
             Ok(Convert::from(i))
         } else {
-            Err(Error)
+            Err(Error(i))
         }
     }
 }
@@ -467,7 +467,7 @@ impl AFrom<i64> for Result<Convert<i64>> {
         if i != 0 {
             Ok(Convert::from(i))
         } else {
-            Err(Error)
+            Err(Error(0))
         }
     }
 }
@@ -477,7 +477,7 @@ impl AFrom<bool> for Result<Convert<bool>> {
         if i {
             Ok(Convert::from(i))
         } else {
-            Err(Error)
+            Err(Error(0))
         }
     }
 }
@@ -487,7 +487,7 @@ impl AFrom<*const c_char> for Result<Convert<*const c_char>> {
         if c != null() {
             Ok(Convert::from(c))
         } else {
-            Err(Error)
+            Err(Error(0))
         }
     }
 }
