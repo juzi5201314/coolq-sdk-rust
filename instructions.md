@@ -68,7 +68,7 @@ fn this_is_main() {
 }
 
 #[listener(priority = "high")] // 如果开启了全优先级，才能用priority参数。
-fn private_msg(event: &mut PrivateMessageEvent) {
+fn private_msg(event: PrivateMessageEvent) {
     if event.get_message().has_cqcode() {
         let mut msg = MessageSegment::new();
         event.get_message().cqcodes.iter().for_each(|cqcode| {
@@ -79,7 +79,7 @@ fn private_msg(event: &mut PrivateMessageEvent) {
 }
 
 #[listener]
-async fn this_is_group_msg(event: &mut GroupMessageEvent) {
+async fn this_is_group_msg(_: GroupMessageEvent) {
 
 }
 ```
