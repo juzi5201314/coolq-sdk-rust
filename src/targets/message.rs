@@ -41,6 +41,7 @@ impl Message {
     }
 }
 
+#[derive(Clone)]
 pub struct MessageSegment(String);
 
 impl MessageSegment {
@@ -51,6 +52,30 @@ impl MessageSegment {
     pub fn add(&mut self, msg: impl ToString) -> &mut Self {
         self.0.push_str(msg.to_string().as_ref());
         self
+    }
+
+    pub fn at_all(&mut self) -> &mut Self {
+        self.add(CQCode::AtAll())
+    }
+
+    pub fn at(&mut self, user_id: i64) -> &mut Self {
+        self.add(CQCode::At(user_id))
+    }
+
+    pub fn face(&mut self, face_id: i32) -> &mut Self {
+        self.add(CQCode::Face(face_id))
+    }
+
+    pub fn bface(&mut self, bface_id: i32) -> &mut Self {
+        self.add(CQCode::Bface(bface_id))
+    }
+
+    pub fn sface(&mut self, sface_id: i32) -> &mut Self {
+        self.add(CQCode::Sface(sface_id))
+    }
+
+    pub fn emoji(&mut self, emoji_id: i32) -> &mut Self {
+        self.add(CQCode::Emoji(emoji_id))
     }
 
     pub fn newline(&mut self) -> &mut Self {
@@ -92,7 +117,7 @@ pub trait SendMessage {
 
     /// type参数暂不支持
     fn send_dice(&self) -> Result<i32> {
-        self.send_message(CQCode::Dice(1))
+        self.send_message(CQCode::Dice(0))
     }
 
     fn send_shake(&self) -> Result<i32> {
