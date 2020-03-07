@@ -1,6 +1,6 @@
 [package]
 name = "coolq-sdk-rust"
-version = "0.1.11"
+version = "0.1.20"
 authors = ["soeur <juzi201314@gmail.com>"]
 edition = "2018"
 license = "MIT"
@@ -32,7 +32,7 @@ futures = { version = "0.3.4", optional = true }
 default = []
 enhanced-cqcode = ["tokio", "hex", "md-5"]
 async-listener = ["cqrs_macro/async-listener", "tokio", "futures"]
-async-threaded = ["async-listener", "tokio/rt-threaded"]
+tokio-threaded = ["async-listener", "tokio/rt-threaded"]
 
 [workspace]
 members = ["cqrs_macro", "cqrs_builder"]

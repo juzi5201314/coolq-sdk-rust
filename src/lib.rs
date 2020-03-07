@@ -14,7 +14,9 @@
 //!
 //! ## Features
 //!
-//! * `enhanced-cqcode`: 支持 [增强cq码(图片)][enhanced-cqcode]
+//! * `enhanced-cqcode`: 开启 [增强cq码(图片)][enhanced-cqcode]
+//! * `async-listener`: 开启async事件回调函数
+//! * `tokio-threaded`: 开启tokio的rt-threaded feature。
 //!
 //! [enhanced-cqcode]: crate::targets::cqcode::CQImage
 //!
@@ -35,7 +37,7 @@
 //!
 //!
 //! `build.rs`:
-//! ```should_panic
+//! ```no_run
 //! // 在编译时生成适用于`coolq-sdk-rust`的app.json，json可在target目录同生成的二进制文件一起找到>
 //! use cqrs_builder::AppJson;
 //!
@@ -49,10 +51,17 @@
 //!         .finish();
 //! }
 //! ```
+//! 目前还支持一个`feature`:
+//!
+//! * `full-priority` :
+//!
+//! > 启用该功能之后，[cqrs_builder](https://docs.rs/cqrs_builder)会生成支持全部 [**优先级**](https://docs.cqp.im/dev/v9/app.json/event/#priority) 的app.json
+//! >
+//! > 更多信息可以在[AppJson](https://docs.rs/cqrs_builder/latest/cqrs_builder/struct.AppJson.html)找到。
 //!
 //!
 //! `lib.rs`:
-//! ```ignore
+//! ```no_run
 //! use coolq_sdk_rust::prelude::*;
 //! use coolq_sdk_rust::targets::message::MessageSegment;
 //!
@@ -63,15 +72,32 @@
 //! }
 //!
 //! // `priority`可选填，默认中优先级。
-//! // 开启`full-priority`功能之后，`priority`才会生效。否则请勿填写或填`medium`
-//! #[listener(event = "PrivateMessageEvent", priority = "high")]
-//! fn this_private_msg(event: &mut PrivateMessageEvent) {
+//! // 开启`full-priority`功能之后，`priority`才会生效。否则除medium外的回调函数将不会被酷q调用
+//! #[listener(priority = "high")]
+//! fn this_is_private_msg(event: PrivateMessageEvent) {
 //!     event.reply("hello");
 //! }
 //!
+//! // async函数
+//! // 异步函数将放入sdk共用的tokio runtime中处理
+//! // 异步函数无法拦截事件
+//! #[listener]
+//! async fn this_is_also_private_msg(event: PrivateMessageEvent) {
+//!     xxx.await;
+//! }
+//!
+//! // block_on宏
+//! // 添加了block_on宏的异步函数 将会生成一个新的tokio runtime来***阻塞***运行
+//! // 该类函数可拦截事件
+//! #[listener]
+//! #[block_on]
+//! async fn oh(_: ExitEvent) {
+//!     say_bye.await
+//! }
+//!
 //! // 这是一个检测群聊消息中含有什么cq码的例子
-//! #[listener(event = "GroupMessageEvent")]
-//! fn group_msg(event: &mut GroupMessageEvent) {
+//! #[listener]
+//! fn group_msg(event: GroupMessageEvent) {
 //!     if event.get_message().has_cqcode() {
 //!         let mut msg = MessageSegment::new();
 //!         event.get_message().cqcodes.iter().for_each(|cqcode| {
