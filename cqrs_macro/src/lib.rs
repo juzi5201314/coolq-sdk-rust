@@ -8,6 +8,7 @@ use syn::{ReturnType, FnArg};
 
 use quote::quote;
 use std::borrow::Borrow;
+use syn::export::TokenStream2;
 
 macro_rules! error {
     ($tokens: expr, $message: expr) => {
@@ -74,7 +75,8 @@ struct MacroArgs {
 pub fn listener(
     attr: proc_macro::TokenStream, item: proc_macro::TokenStream,
 ) -> proc_macro::TokenStream {
-    let args = MacroArgs::from_list(&syn::parse_macro_input!(attr as syn::AttributeArgs)).unwrap();
+    let args = attr.clone();
+    let args = MacroArgs::from_list(&syn::parse_macro_input!(args as syn::AttributeArgs)).unwrap();
     let func = syn::parse_macro_input!(item as syn::ItemFn);
     let func_name = &func.sig.ident;
     let attrs = &func.attrs;
@@ -97,12 +99,14 @@ pub fn listener(
     if let Some(extern_func_info) = get_event_func(event_name.as_ref()) {
         let event = event_name.parse::<TokenStream>().unwrap();
         let extern_func_name = if let Some(priority) = args.priority {
+            let prioritys = vec!["highest", "high", "medium", "low"];
+            if !prioritys.contains(&priority.as_ref()) {
+                error!(TokenStream2::from(attr), format!("Priority can only be {}.", prioritys.join(",")))
+            }
             format!("{}_{}", extern_func_info.0, priority)
         } else {
             format!("{}_medium", extern_func_info.0)
-        }
-            .parse::<TokenStream>()
-            .unwrap();
+        }.parse::<TokenStream>().unwrap();
         let args_name_t = extern_func_info.1.parse::<TokenStream>().unwrap();
         let args_name = extern_func_info.2.parse::<TokenStream>().unwrap();
         let result_type = extern_func_info.3.parse::<TokenStream>().unwrap();

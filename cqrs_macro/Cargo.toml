@@ -1,6 +1,6 @@
 [package]
 name = "cqrs_macro"
-version = "0.1.0"
+version = "0.1.1"
 authors = ["juzi5201314 <1034236490@qq.com>"]
 edition = "2018"
 license = "MIT"
