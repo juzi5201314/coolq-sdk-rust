@@ -44,7 +44,7 @@ impl GroupBanEvent {
                 self.group.set_ban(self.being_operate_user.user_id, 0)
             }
         } else {
-            Err(Error)
+            Err(Error(0))
         }
     }
 
