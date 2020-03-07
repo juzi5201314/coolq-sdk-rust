@@ -1,11 +1,16 @@
 //! 在获取陌生人信息和好友列表时使用
 //!
 //!
-//! 权限分组请看[`Authority`]。算是一个小小的权限管理吧
+//! 权限分组请看[Authority]。算是一个小小的权限管理吧
 //!
 //! 使用[`add_master`]和[`add_super_admin`]来添加主人和管理员。
 //!
 //! 使用[`check_authority`]来检查用户权限。
+//!
+//! [Authorit]: Authority
+//! [`add_master`]: User::add_master
+//! [`add_super_admin`]: User::add_super_admin
+//! [`check_authority`]: Authority::check_authority
 
 use std::{convert::TryInto, io::Cursor, sync::RwLock};
 

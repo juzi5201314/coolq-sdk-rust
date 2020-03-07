@@ -11,11 +11,16 @@
   <component name="CargoProjects">
     <cargoProject FILE="$PROJECT_DIR$/Cargo.toml" />
     <cargoProject FILE="$PROJECT_DIR$/cqrs_macro/Cargo.toml" />
+    <cargoProject FILE="$PROJECT_DIR$/cqrs_builder/Cargo.toml" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a88e365e-3801-49d2-9ed4-0397c899e63b" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+    <list default="true" id="a88e365e-3801-49d2-9ed4-0397c899e63b" name="Default Changelist" comment="update">
+      <change beforePath="$PROJECT_DIR$/.idea/coolq-sdk-rust.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/coolq-sdk-rust.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/lib.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/targets/cqcode.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/targets/cqcode.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/targets/user.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/targets/user.rs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -88,7 +93,7 @@
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../rssbot" />
     <property name="org.rust.cargo.project.model.PROJECT_DISCOVERY" value="true" />
     <property name="org.rust.hideDetachedFileNotifications/home/soeur/CLionProjects/coolq-sdk-rust/src/cqp.rs" value="true" />
     <property name="org.rust.hideDetachedFileNotifications/home/soeur/CLionProjects/coolq-sdk-rust/src/events/enable.rs" value="true" />
@@ -102,6 +107,7 @@
   </component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\10342\CLionProjects\coolq-sdk-rust\cqrs_builder\src" />
       <recent name="$PROJECT_DIR$" />
     </key>
   </component>
@@ -110,7 +116,7 @@
       <command value="cargo publish" />
     </option>
   </component>
-  <component name="RunManager" selected="Cargo Command.publish [coolq-sdk-rust]">
+  <component name="RunManager" selected="Cargo Command.rustdoc">
     <configuration name="Bench test_bench" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
       <option name="channel" value="DEFAULT" />
       <option name="command" value="bench --package coolq-sdk-rust --test test_bench -- --exact" />
@@ -138,23 +144,8 @@
       </method>
     </configuration>
     <configuration name="build" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
-      <option name="channel" value="STABLE" />
-      <option name="command" value="build &#10;--target=i686-pc-windows-msvc" />
-      <option name="allFeatures" value="false" />
-      <option name="nocapture" value="false" />
-      <option name="emulateTerminal" value="false" />
-      <option name="backtrace" value="SHORT" />
-      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
-      <envs>
-        <env name="LIB" value="/usr/local/msvc/msvc/lib/x86;/usr/local/msvc/win10/10.0.17763.0/ucrt/x86;/usr/local/msvc/win10/10.0.17763.0/um/x86" />
-      </envs>
-      <method v="2">
-        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
-      </method>
-    </configuration>
-    <configuration name="doc" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
       <option name="channel" value="DEFAULT" />
-      <option name="command" value="doc &#10;--open&#10;--no-deps&#10;--target=i686-pc-windows-msvc" />
+      <option name="command" value="build &#10;--target=i686-pc-windows-msvc" />
       <option name="allFeatures" value="false" />
       <option name="nocapture" value="false" />
       <option name="emulateTerminal" value="false" />
@@ -169,7 +160,20 @@
     </configuration>
     <configuration name="publish [coolq-sdk-rust]" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
       <option name="channel" value="DEFAULT" />
-      <option name="command" value="publish" />
+      <option name="command" value="publish --allow-dirty" />
+      <option name="allFeatures" value="false" />
+      <option name="nocapture" value="false" />
+      <option name="emulateTerminal" value="false" />
+      <option name="backtrace" value="SHORT" />
+      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+      <envs />
+      <method v="2">
+        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="rustdoc" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
+      <option name="channel" value="NIGHTLY" />
+      <option name="command" value="rustdoc &#10;--open&#10;--all-features&#10;-- --cfg docsrs" />
       <option name="allFeatures" value="false" />
       <option name="nocapture" value="false" />
       <option name="emulateTerminal" value="false" />
@@ -196,7 +200,7 @@
     <list>
       <item itemvalue="Cargo Command.Bench test_bench" />
       <item itemvalue="Cargo Command.build" />
-      <item itemvalue="Cargo Command.doc" />
+      <item itemvalue="Cargo Command.rustdoc" />
       <item itemvalue="Cargo Command.test" />
       <item itemvalue="Cargo Command.Test test" />
       <item itemvalue="Cargo Command.publish [coolq-sdk-rust]" />
@@ -233,7 +237,7 @@
   </component>
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
-      <changelist id="ad6421ef-c27f-4e1f-aead-64bb8ef9a9ba" name="Default Changelist" comment="" />
+      <changelist id="a88e365e-3801-49d2-9ed4-0397c899e63b" name="Default Changelist" comment="update" />
       <created>1574750656275</created>
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
@@ -297,125 +301,20 @@
       <workItem from="1582443607493" duration="2738000" />
       <workItem from="1582446624973" duration="718000" />
       <workItem from="1582447349884" duration="203000" />
-    </task>
-    <task id="LOCAL-00019" summary="修复了Image::Http的一个错误。并且限制请求最多只能重定向10次，并在5秒之后超时">
-      <created>1575707564559</created>
-      <option name="number" value="00019" />
-      <option name="presentableId" value="LOCAL-00019" />
-      <option name="project" value="LOCAL" />
-      <updated>1575707564559</updated>
-    </task>
-    <task id="LOCAL-00020" summary="修复了Image::Http的一个错误。并且限制请求最多只能重定向10次，并在5秒之后超时">
-      <created>1575708524044</created>
-      <option name="number" value="00020" />
-      <option name="presentableId" value="LOCAL-00020" />
-      <option name="project" value="LOCAL" />
-      <updated>1575708524044</updated>
-    </task>
-    <task id="LOCAL-00021" summary="修复了Image::Http的一个错误。并且限制请求最多只能重定向10次，并在5秒之后超时">
-      <created>1575709477192</created>
-      <option name="number" value="00021" />
-      <option name="presentableId" value="LOCAL-00021" />
-      <option name="project" value="LOCAL" />
-      <updated>1575709477192</updated>
-    </task>
-    <task id="LOCAL-00022" summary="在发送http请求出现错误时，发送一条log">
-      <created>1575712297363</created>
-      <option name="number" value="00022" />
-      <option name="presentableId" value="LOCAL-00022" />
-      <option name="project" value="LOCAL" />
-      <updated>1575712297363</updated>
-    </task>
-    <task id="LOCAL-00023" summary="给User添加了权限方面的功能。&#10;给Message添加了一个has_cqcode方法来判断消息中是否含义cq码。">
-      <created>1576057757285</created>
-      <option name="number" value="00023" />
-      <option name="presentableId" value="LOCAL-00023" />
-      <option name="project" value="LOCAL" />
-      <updated>1576057757285</updated>
-    </task>
-    <task id="LOCAL-00024" summary="添加了获取主人列表和超级管理员列表">
-      <created>1576123461632</created>
-      <option name="number" value="00024" />
-      <option name="presentableId" value="LOCAL-00024" />
-      <option name="project" value="LOCAL" />
-      <updated>1576123461632</updated>
-    </task>
-    <task id="LOCAL-00025" summary="修复bug（at全体成员出现错误）&#10;增加at_all方法用于at全体成员&#10;接收到的cq码 at ，如果qq号为0，则表示@全体成员">
-      <created>1576298008689</created>
-      <option name="number" value="00025" />
-      <option name="presentableId" value="LOCAL-00025" />
-      <option name="project" value="LOCAL" />
-      <updated>1576298008689</updated>
-    </task>
-    <task id="LOCAL-00026" summary="添加了Clone">
-      <created>1576298040124</created>
-      <option name="number" value="00026" />
-      <option name="presentableId" value="LOCAL-00026" />
-      <option name="project" value="LOCAL" />
-      <updated>1576298040124</updated>
-    </task>
-    <task id="LOCAL-00027" summary="添加了Clone">
-      <created>1576298446496</created>
-      <option name="number" value="00027" />
-      <option name="presentableId" value="LOCAL-00027" />
-      <option name="project" value="LOCAL" />
-      <updated>1576298446496</updated>
-    </task>
-    <task id="LOCAL-00028" summary="添加AtAll。">
-      <created>1576298481275</created>
-      <option name="number" value="00028" />
-      <option name="presentableId" value="LOCAL-00028" />
-      <option name="project" value="LOCAL" />
-      <updated>1576298481275</updated>
-    </task>
-    <task id="LOCAL-00029" summary="添加async版本的cq码Image处理方法。">
-      <created>1576647705906</created>
-      <option name="number" value="00029" />
-      <option name="presentableId" value="LOCAL-00029" />
-      <option name="project" value="LOCAL" />
-      <updated>1576647705906</updated>
-    </task>
-    <task id="LOCAL-00030" summary="使用宏生成api，减少重复代码量">
-      <created>1581339066655</created>
-      <option name="number" value="00030" />
-      <option name="presentableId" value="LOCAL-00030" />
-      <option name="project" value="LOCAL" />
-      <updated>1581339066656</updated>
-    </task>
-    <task id="LOCAL-00031" summary="使用宏实现From，减少重复代码量">
-      <created>1581400591731</created>
-      <option name="number" value="00031" />
-      <option name="presentableId" value="LOCAL-00031" />
-      <option name="project" value="LOCAL" />
-      <updated>1581400591731</updated>
-    </task>
-    <task id="LOCAL-00032" summary="改成impl trait就行的，我为什么要用过程宏(错乱">
-      <created>1581401966176</created>
-      <option name="number" value="00032" />
-      <option name="presentableId" value="LOCAL-00032" />
-      <option name="project" value="LOCAL" />
-      <updated>1581401966176</updated>
-    </task>
-    <task id="LOCAL-00033" summary="增加错误处理钩子，在panic的时候输出错误信息到酷q">
-      <created>1581406060391</created>
-      <option name="number" value="00033" />
-      <option name="presentableId" value="LOCAL-00033" />
-      <option name="project" value="LOCAL" />
-      <updated>1581406060391</updated>
-    </task>
-    <task id="LOCAL-00034" summary="api函数返回Result。&#10;添加了部分doc注释">
-      <created>1581508714195</created>
-      <option name="number" value="00034" />
-      <option name="presentableId" value="LOCAL-00034" />
-      <option name="project" value="LOCAL" />
-      <updated>1581508714195</updated>
-    </task>
-    <task id="LOCAL-00035" summary="更新了readme">
-      <created>1581508977048</created>
-      <option name="number" value="00035" />
-      <option name="presentableId" value="LOCAL-00035" />
-      <option name="project" value="LOCAL" />
-      <updated>1581508977048</updated>
+      <workItem from="1582968761797" duration="1571000" />
+      <workItem from="1582984100114" duration="1311000" />
+      <workItem from="1583050923331" duration="87000" />
+      <workItem from="1583137146731" duration="1149000" />
+      <workItem from="1583141755063" duration="65000" />
+      <workItem from="1583143511291" duration="891000" />
+      <workItem from="1583146009174" duration="244000" />
+      <workItem from="1583230862640" duration="19000" />
+      <workItem from="1583232502996" duration="88000" />
+      <workItem from="1583234184718" duration="51000" />
+      <workItem from="1583236780298" duration="260000" />
+      <workItem from="1583240185016" duration="2538000" />
+      <workItem from="1583301882894" duration="25000" />
+      <workItem from="1583547113072" duration="7907000" />
     </task>
     <task id="LOCAL-00036" summary="添加编译时生成app.json功能。">
       <created>1581575508055</created>
@@ -641,7 +540,126 @@
       <option name="project" value="LOCAL" />
       <updated>1582528310161</updated>
     </task>
-    <option name="localTasksCounter" value="68" />
+    <task id="LOCAL-00068" summary="将增强cq码分离成feature: enhanced-cqcode">
+      <created>1582876570408</created>
+      <option name="number" value="00068" />
+      <option name="presentableId" value="LOCAL-00068" />
+      <option name="project" value="LOCAL" />
+      <updated>1582876570408</updated>
+    </task>
+    <task id="LOCAL-00069" summary="修复了没有公开SendMessage的疏忽">
+      <created>1582970725250</created>
+      <option name="number" value="00069" />
+      <option name="presentableId" value="LOCAL-00069" />
+      <option name="project" value="LOCAL" />
+      <updated>1582970725250</updated>
+    </task>
+    <task id="LOCAL-00070" summary="update">
+      <created>1582970815376</created>
+      <option name="number" value="00070" />
+      <option name="presentableId" value="LOCAL-00070" />
+      <option name="project" value="LOCAL" />
+      <updated>1582970815376</updated>
+    </task>
+    <task id="LOCAL-00071" summary="基本稳定了">
+      <created>1582970927345</created>
+      <option name="number" value="00071" />
+      <option name="presentableId" value="LOCAL-00071" />
+      <option name="project" value="LOCAL" />
+      <updated>1582970927345</updated>
+    </task>
+    <task id="LOCAL-00072" summary="为事件实现Clone。prelude不再导出所有api方法了。">
+      <created>1582984840181</created>
+      <option name="number" value="00072" />
+      <option name="presentableId" value="LOCAL-00072" />
+      <option name="project" value="LOCAL" />
+      <updated>1582984840181</updated>
+    </task>
+    <task id="LOCAL-00073" summary="添加newline方法，换行">
+      <created>1583138632067</created>
+      <option name="number" value="00073" />
+      <option name="presentableId" value="LOCAL-00073" />
+      <option name="project" value="LOCAL" />
+      <updated>1583138632067</updated>
+    </task>
+    <task id="LOCAL-00074" summary="修复了群聊事件user权限不正确的问题">
+      <created>1583138750044</created>
+      <option name="number" value="00074" />
+      <option name="presentableId" value="LOCAL-00074" />
+      <option name="project" value="LOCAL" />
+      <updated>1583138750044</updated>
+    </task>
+    <task id="LOCAL-00075" summary="为api::Error添加to string">
+      <created>1583146143302</created>
+      <option name="number" value="00075" />
+      <option name="presentableId" value="LOCAL-00075" />
+      <option name="project" value="LOCAL" />
+      <updated>1583146143302</updated>
+    </task>
+    <task id="LOCAL-00076" summary="MessageSegment支持多换行符">
+      <created>1583146186577</created>
+      <option name="number" value="00076" />
+      <option name="presentableId" value="LOCAL-00076" />
+      <option name="project" value="LOCAL" />
+      <updated>1583146186578</updated>
+    </task>
+    <task id="LOCAL-00077" summary="api现在可以直接发送MessageSegment了">
+      <created>1583237024003</created>
+      <option name="number" value="00077" />
+      <option name="presentableId" value="LOCAL-00077" />
+      <option name="project" value="LOCAL" />
+      <updated>1583237024003</updated>
+    </task>
+    <task id="LOCAL-00078" summary="MessageSegment添加at，face等几个方法。">
+      <created>1583547634824</created>
+      <option name="number" value="00078" />
+      <option name="presentableId" value="LOCAL-00078" />
+      <option name="project" value="LOCAL" />
+      <updated>1583547634824</updated>
+    </task>
+    <task id="LOCAL-00079" summary="update">
+      <created>1583547643297</created>
+      <option name="number" value="00079" />
+      <option name="presentableId" value="LOCAL-00079" />
+      <option name="project" value="LOCAL" />
+      <updated>1583547643297</updated>
+    </task>
+    <task id="LOCAL-00080" summary="Error包含酷q的错误码。&#10;直接使用api可发送MessageSegment。">
+      <created>1583547704781</created>
+      <option name="number" value="00080" />
+      <option name="presentableId" value="LOCAL-00080" />
+      <option name="project" value="LOCAL" />
+      <updated>1583547704781</updated>
+    </task>
+    <task id="LOCAL-00081" summary="添加注释">
+      <created>1583548058259</created>
+      <option name="number" value="00081" />
+      <option name="presentableId" value="LOCAL-00081" />
+      <option name="project" value="LOCAL" />
+      <updated>1583548058259</updated>
+    </task>
+    <task id="LOCAL-00082" summary="async-std -&gt; tokio">
+      <created>1583549393913</created>
+      <option name="number" value="00082" />
+      <option name="presentableId" value="LOCAL-00082" />
+      <option name="project" value="LOCAL" />
+      <updated>1583549393913</updated>
+    </task>
+    <task id="LOCAL-00083" summary="把生成app.json抽出来独立一个crate">
+      <created>1583550176992</created>
+      <option name="number" value="00083" />
+      <option name="presentableId" value="LOCAL-00083" />
+      <option name="project" value="LOCAL" />
+      <updated>1583550176992</updated>
+    </task>
+    <task id="LOCAL-00084" summary="刚刚忘记改文档注释和feature了（尴尬">
+      <created>1583550744301</created>
+      <option name="number" value="00084" />
+      <option name="presentableId" value="LOCAL-00084" />
+      <option name="project" value="LOCAL" />
+      <updated>1583550744301</updated>
+    </task>
+    <option name="localTasksCounter" value="85" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -690,21 +708,6 @@
     <ignored-roots>
       <path value="$PROJECT_DIR$/example/mycqpbot" />
     </ignored-roots>
-    <MESSAGE value="api函数返回Result。&#10;添加了部分doc注释" />
-    <MESSAGE value="更新了readme" />
-    <MESSAGE value="添加编译时生成app.json功能。" />
-    <MESSAGE value="增加文档注释和测试" />
-    <MESSAGE value="简单重构事件处理" />
-    <MESSAGE value="把原qqtarget解耦出来" />
-    <MESSAGE value="删除不需要的文件" />
-    <MESSAGE value="增加需要的转换。&#10;增加to和try_to方法" />
-    <MESSAGE value="增加full-priority功能，用于生成全部优先级事件回调。&#10;删除start,enable,disable,exit事件的优先级分级，本人认为这4个事件没必要分优先级，而且也不应该进行事件拦截。" />
-    <MESSAGE value="重构了事件回调，删除了listener模块。" />
-    <MESSAGE value="增加了cqrs_macro crate" />
-    <MESSAGE value="添加了遗漏的3个事件" />
-    <MESSAGE value="删除不不必要的getter。&#10;对各个事件修修补补。" />
-    <MESSAGE value="完成了图片cq码对发送base64，二进制数据，其他目录图片的支持。&#10;出于考虑删除发送http图片cq码的支持" />
-    <MESSAGE value="现在应该在build时填写appid" />
     <MESSAGE value="基本重写完成" />
     <MESSAGE value="修修补补。&#10;api文档： 咕咕咕" />
     <MESSAGE value="支持listener可以返回空" />
@@ -714,34 +717,57 @@
     <MESSAGE value="修修补补" />
     <MESSAGE value="readme添加了指向docs.rs的文档" />
     <MESSAGE value="跳过某个必定出错的文档测试&#10;添加一些徽章" />
+    <MESSAGE value="将增强cq码分离成feature: enhanced-cqcode" />
+    <MESSAGE value="修复了没有公开SendMessage的疏忽" />
+    <MESSAGE value="基本稳定了" />
+    <MESSAGE value="为事件实现Clone。prelude不再导出所有api方法了。" />
+    <MESSAGE value="添加newline方法，换行" />
+    <MESSAGE value="修复了群聊事件user权限不正确的问题" />
+    <MESSAGE value="为api::Error添加to string" />
+    <MESSAGE value="MessageSegment支持多换行符" />
+    <MESSAGE value="api现在可以直接发送MessageSegment了" />
+    <MESSAGE value="MessageSegment添加at，face等几个方法。" />
     <MESSAGE value="update" />
-    <option name="LAST_COMMIT_MESSAGE" value="update" />
+    <MESSAGE value="Error包含酷q的错误码。&#10;直接使用api可发送MessageSegment。" />
+    <MESSAGE value="添加注释" />
+    <MESSAGE value="async-std -&gt; tokio" />
+    <MESSAGE value="把生成app.json抽出来独立一个crate" />
+    <MESSAGE value="刚刚忘记改文档注释和feature了（尴尬" />
+    <option name="LAST_COMMIT_MESSAGE" value="刚刚忘记改文档注释和feature了（尴尬" />
   </component>
   <component name="WindowStateProjectService">
-    <state x="701" y="328" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1582093262210">
-      <screen x="0" y="26" width="1920" height="1054" />
+    <state x="452" y="132" key="#Notifications" timestamp="1583549569027">
+      <screen x="0" y="40" width="1920" height="1040" />
     </state>
+    <state x="452" y="132" key="#Notifications/-1920.32.1536.832/0.40.1920.1040@0.40.1920.1040" timestamp="1583549569027" />
+    <state x="701" y="338" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1583554700822">
+      <screen x="0" y="40" width="1920" height="1040" />
+    </state>
+    <state x="701" y="338" key="#com.intellij.execution.impl.EditConfigurationsDialog/-1920.32.1536.832/0.40.1920.1040@0.40.1920.1040" timestamp="1583554700822" />
     <state x="701" y="328" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.26.1920.1054@0.26.1920.1054" timestamp="1582093262210" />
     <state x="2338" y="211" key="#com.intellij.execution.impl.EditConfigurationsDialog/1920.0.1920.1080/0.26.1920.1054@1920.0.1920.1080" timestamp="1575958250295" />
     <state x="515" y="358" width="879" height="391" key="#com.intellij.fileTypes.FileTypeChooser" timestamp="1582525542848">
       <screen x="0" y="26" width="1920" height="1054" />
     </state>
     <state x="515" y="358" width="879" height="391" key="#com.intellij.fileTypes.FileTypeChooser/0.26.1920.1054@0.26.1920.1054" timestamp="1582525542848" />
-    <state x="768" y="272" width="374" height="563" key="#com.intellij.ide.util.MemberChooser" timestamp="1582021600450">
-      <screen x="0" y="26" width="1920" height="1054" />
+    <state x="768" y="283" width="398" height="556" key="#com.intellij.ide.util.MemberChooser" timestamp="1583143710571">
+      <screen x="0" y="40" width="1920" height="1040" />
     </state>
+    <state x="768" y="283" width="398" height="556" key="#com.intellij.ide.util.MemberChooser/-1920.32.1536.832/0.40.1920.1040@0.40.1920.1040" timestamp="1583143710571" />
     <state x="768" y="272" width="374" height="563" key="#com.intellij.ide.util.MemberChooser/0.26.1920.1054@0.26.1920.1054" timestamp="1582021600450" />
     <state x="643" y="281" width="624" height="545" key="#com.intellij.openapi.updateSettings.impl.PluginUpdateInfoDialog" timestamp="1581415512390">
       <screen x="0" y="26" width="1920" height="1054" />
     </state>
     <state x="643" y="281" width="624" height="545" key="#com.intellij.openapi.updateSettings.impl.PluginUpdateInfoDialog/0.26.1920.1054@0.26.1920.1054" timestamp="1581415512390" />
-    <state x="693" y="302" width="524" height="503" key="#com.intellij.refactoring.safeDelete.UnsafeUsagesDialog" timestamp="1581598402335">
-      <screen x="0" y="26" width="1920" height="1054" />
+    <state x="693" y="312" width="524" height="503" key="#com.intellij.refactoring.safeDelete.UnsafeUsagesDialog" timestamp="1582873634195">
+      <screen x="0" y="40" width="1920" height="1040" />
     </state>
+    <state x="693" y="312" key="#com.intellij.refactoring.safeDelete.UnsafeUsagesDialog/-1920.32.1536.832/0.40.1920.1040@0.40.1920.1040" timestamp="1582873634195" />
     <state x="693" y="302" width="524" height="503" key="#com.intellij.refactoring.safeDelete.UnsafeUsagesDialog/0.26.1920.1054@0.26.1920.1054" timestamp="1581598402335" />
-    <state x="395" y="149" width="1298" height="862" key="CommitChangelistDialog2" timestamp="1582528310120">
-      <screen x="0" y="26" width="1920" height="1054" />
+    <state x="443" y="82" width="1298" height="862" key="CommitChangelistDialog2" timestamp="1583550743394">
+      <screen x="0" y="40" width="1920" height="1040" />
     </state>
+    <state x="443" y="82" key="CommitChangelistDialog2/-1920.32.1536.832/0.40.1920.1040@0.40.1920.1040" timestamp="1583550743394" />
     <state x="395" y="149" width="1298" height="862" key="CommitChangelistDialog2/0.26.1920.1054@0.26.1920.1054" timestamp="1582528310120" />
     <state x="2286" y="146" width="1092" height="814" key="CommitChangelistDialog2/1920.0.1920.1080/0.26.1920.1054@1920.0.1920.1080" timestamp="1576123461557" />
     <state x="100" y="149" width="1720" height="854" key="DiffContextDialog" timestamp="1582017606381">
@@ -749,29 +775,34 @@
     </state>
     <state x="100" y="149" key="DiffContextDialog/0.26.1920.1054@0.26.1920.1054" timestamp="1582017606380" />
     <state x="2020" y="126" width="1720" height="854" key="DiffContextDialog/1920.0.1920.1080/0.26.1920.1054@1920.0.1920.1080" timestamp="1575603444320" />
-    <state x="684" y="330" width="592" height="514" key="FileChooserDialogImpl" timestamp="1582447526382">
-      <screen x="0" y="26" width="1920" height="1054" />
+    <state x="684" y="340" width="592" height="514" key="FileChooserDialogImpl" timestamp="1583549741683">
+      <screen x="0" y="40" width="1920" height="1040" />
     </state>
+    <state x="684" y="340" key="FileChooserDialogImpl/-1920.32.1536.832/0.40.1920.1040@0.40.1920.1040" timestamp="1583549741683" />
     <state x="684" y="330" width="592" height="514" key="FileChooserDialogImpl/0.26.1920.1054@0.26.1920.1054" timestamp="1582447526382" />
     <state x="2604" y="311" key="FileChooserDialogImpl/1920.0.1920.1080/0.26.1920.1054@1920.0.1920.1080" timestamp="1576050829316" />
-    <state width="1872" height="277" key="GridCell.Tab.0.bottom" timestamp="1582528335084">
-      <screen x="0" y="26" width="1920" height="1054" />
+    <state width="1869" height="270" key="GridCell.Tab.0.bottom" timestamp="1583555212206">
+      <screen x="0" y="40" width="1920" height="1040" />
     </state>
+    <state width="1869" height="270" key="GridCell.Tab.0.bottom/-1920.32.1536.832/0.40.1920.1040@0.40.1920.1040" timestamp="1583555212206" />
     <state width="1872" height="277" key="GridCell.Tab.0.bottom/0.26.1920.1054@0.26.1920.1054" timestamp="1582528335084" />
     <state width="1872" height="277" key="GridCell.Tab.0.bottom/1920.0.1920.1080/0.26.1920.1054@1920.0.1920.1080" timestamp="1575958699877" />
-    <state width="1872" height="277" key="GridCell.Tab.0.center" timestamp="1582528335084">
-      <screen x="0" y="26" width="1920" height="1054" />
+    <state width="1869" height="270" key="GridCell.Tab.0.center" timestamp="1583555212206">
+      <screen x="0" y="40" width="1920" height="1040" />
     </state>
+    <state width="1869" height="270" key="GridCell.Tab.0.center/-1920.32.1536.832/0.40.1920.1040@0.40.1920.1040" timestamp="1583555212206" />
     <state width="1872" height="277" key="GridCell.Tab.0.center/0.26.1920.1054@0.26.1920.1054" timestamp="1582528335084" />
     <state width="1872" height="277" key="GridCell.Tab.0.center/1920.0.1920.1080/0.26.1920.1054@1920.0.1920.1080" timestamp="1575958699877" />
-    <state width="1872" height="277" key="GridCell.Tab.0.left" timestamp="1582528335083">
-      <screen x="0" y="26" width="1920" height="1054" />
+    <state width="1869" height="270" key="GridCell.Tab.0.left" timestamp="1583555212206">
+      <screen x="0" y="40" width="1920" height="1040" />
     </state>
+    <state width="1869" height="270" key="GridCell.Tab.0.left/-1920.32.1536.832/0.40.1920.1040@0.40.1920.1040" timestamp="1583555212206" />
     <state width="1872" height="277" key="GridCell.Tab.0.left/0.26.1920.1054@0.26.1920.1054" timestamp="1582528335083" />
     <state width="1872" height="277" key="GridCell.Tab.0.left/1920.0.1920.1080/0.26.1920.1054@1920.0.1920.1080" timestamp="1575958699877" />
-    <state width="1872" height="277" key="GridCell.Tab.0.right" timestamp="1582528335084">
-      <screen x="0" y="26" width="1920" height="1054" />
+    <state width="1869" height="270" key="GridCell.Tab.0.right" timestamp="1583555212206">
+      <screen x="0" y="40" width="1920" height="1040" />
     </state>
+    <state width="1869" height="270" key="GridCell.Tab.0.right/-1920.32.1536.832/0.40.1920.1040@0.40.1920.1040" timestamp="1583555212206" />
     <state width="1872" height="277" key="GridCell.Tab.0.right/0.26.1920.1054@0.26.1920.1054" timestamp="1582528335084" />
     <state width="1872" height="277" key="GridCell.Tab.0.right/1920.0.1920.1080/0.26.1920.1054@1920.0.1920.1080" timestamp="1575958699877" />
     <state x="1014" y="286" width="605" height="565" key="MultipleFileMergeDialog" timestamp="1582525774815">
@@ -788,24 +819,25 @@
     </state>
     <state x="333" y="167" width="1217" height="731" key="SettingsEditor/0.26.1920.1054@0.26.1920.1054" timestamp="1581925418102" />
     <state x="2399" y="188" width="962" height="731" key="SettingsEditor/1920.0.1920.1080/0.26.1920.1054@1920.0.1920.1080" timestamp="1575612732456" />
-    <state x="555" y="308" width="800" height="529" key="Vcs.Push.Dialog.v2" timestamp="1582528311091">
-      <screen x="0" y="26" width="1920" height="1054" />
+    <state x="555" y="318" width="800" height="529" key="Vcs.Push.Dialog.v2" timestamp="1583550746297">
+      <screen x="0" y="40" width="1920" height="1040" />
     </state>
+    <state x="555" y="318" key="Vcs.Push.Dialog.v2/-1920.32.1536.832/0.40.1920.1040@0.40.1920.1040" timestamp="1583550746297" />
     <state x="555" y="308" width="800" height="529" key="Vcs.Push.Dialog.v2/0.26.1920.1054@0.26.1920.1054" timestamp="1582528311091" />
     <state x="2475" y="289" width="800" height="529" key="Vcs.Push.Dialog.v2/1920.0.1920.1080/0.26.1920.1054@1920.0.1920.1080" timestamp="1576123462856" />
     <state x="514" y="176" width="615" height="684" key="com.intellij.openapi.editor.actions.MultiplePasteAction$ClipboardContentChooser" timestamp="1581853858679">
       <screen x="0" y="26" width="1920" height="1054" />
     </state>
     <state x="514" y="176" width="615" height="684" key="com.intellij.openapi.editor.actions.MultiplePasteAction$ClipboardContentChooser/0.26.1920.1054@0.26.1920.1054" timestamp="1581853858679" />
-    <state x="2434" y="154" width="881" height="799" key="com.intellij.openapi.editor.actions.MultiplePasteAction$ClipboardContentChooser/1920.0.1920.1080/0.26.1920.1054@1920.0.1920.1080" timestamp="1574828128065" />
     <state x="675" y="488" width="569" height="161" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2" timestamp="1582444479855">
       <screen x="0" y="26" width="1920" height="1054" />
     </state>
     <state x="675" y="488" width="569" height="161" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2/0.26.1920.1054@0.26.1920.1054" timestamp="1582444479855" />
     <state x="2595" y="473" width="569" height="161" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2/1920.0.1920.1080/0.26.1920.1054@1920.0.1920.1080" timestamp="1575603382197" />
-    <state x="572" y="308" width="776" height="538" key="find.popup" timestamp="1582014615050">
-      <screen x="0" y="26" width="1920" height="1054" />
+    <state x="572" y="318" width="787" height="642" key="find.popup" timestamp="1583549439495">
+      <screen x="0" y="40" width="1920" height="1040" />
     </state>
+    <state x="572" y="318" width="787" height="642" key="find.popup/-1920.32.1536.832/0.40.1920.1040@0.40.1920.1040" timestamp="1583549439495" />
     <state x="572" y="308" width="776" height="538" key="find.popup/0.26.1920.1054@0.26.1920.1054" timestamp="1582014615050" />
     <state x="2492" y="289" width="776" height="528" key="find.popup/1920.0.1920.1080/0.26.1920.1054@1920.0.1920.1080" timestamp="1575519555005" />
     <state x="605" y="267" width="699" height="573" key="git4idea.branch.GitSmartOperationDialog" timestamp="1582525763942">
@@ -816,9 +848,10 @@
       <screen x="0" y="26" width="1920" height="1054" />
     </state>
     <state x="624" y="253" width="672" height="677" key="run.anything.popup/0.26.1920.1054@0.26.1920.1054" timestamp="1582093036689" />
-    <state x="624" y="219" width="719" height="660" key="search.everywhere.popup" timestamp="1582526271386">
-      <screen x="0" y="26" width="1920" height="1054" />
+    <state x="624" y="230" width="840" height="652" key="search.everywhere.popup" timestamp="1583554627514">
+      <screen x="0" y="40" width="1920" height="1040" />
     </state>
+    <state x="624" y="230" width="840" height="652" key="search.everywhere.popup/-1920.32.1536.832/0.40.1920.1040@0.40.1920.1040" timestamp="1583554627514" />
     <state x="624" y="219" width="719" height="660" key="search.everywhere.popup/0.26.1920.1054@0.26.1920.1054" timestamp="1582526271386" />
     <state x="2544" y="198" width="670" height="676" key="search.everywhere.popup/1920.0.1920.1080/0.26.1920.1054@1920.0.1920.1080" timestamp="1575708262916" />
   </component>

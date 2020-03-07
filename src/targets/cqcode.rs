@@ -94,8 +94,11 @@ pub enum CQImage {
 }
 
 #[cfg(feature = "enhanced-cqcode")]
+#[cfg_attr(docsrs, doc(cfg(feature = "enhanced-cqcode")))]
 impl CQImage {
     /// 有阻塞版本[`to_file_name_blocking`]
+    ///
+    /// [`to_file_name_blocking`]: CQImage::to_file_name_blocking
     pub async fn to_file_name(&self) -> std::io::Result<String> {
         // 插件数据目录在data\app\appid，借此来获取data目录。
         let image_dir = Path::new(&get_app_directory().unwrap().to::<String>())
@@ -153,6 +156,8 @@ impl CQImage {
     }
 
     /// 有异步版本[`to_file_name`]
+    ///
+    /// [`to_file_name`]: CQImage::to_file_name
     pub fn to_file_name_blocking(&self) -> std::io::Result<String> {
         tokio::runtime::Runtime::new()?.block_on(self.to_file_name())
     }

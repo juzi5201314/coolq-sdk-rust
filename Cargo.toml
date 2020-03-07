@@ -10,6 +10,10 @@ repository = "https://github.com/juzi5201314/coolq-sdk-rust"
 keywords = ["coolq"]
 readme = "README.md"
 
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]
+
 [dependencies]
 lazy_static = "1.2.0"
 base64 = "0.11.0"
@@ -22,6 +26,7 @@ md-5 = { version = "0.8.0", optional = true }
 hex = { version = "0.4.1", optional = true }
 cqrs_macro = { version = "0.1", path = "cqrs_macro" }
 libc = "0.2.67"
+doc-cfg = "0.1"
 
 [features]
 default = []

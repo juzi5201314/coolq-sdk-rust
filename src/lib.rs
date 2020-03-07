@@ -1,6 +1,9 @@
 #![allow(non_upper_case_globals)]
 #![allow(unused_variables)]
 
+#![doc(html_root_url = "https://docs.rs/coolq-sdk-rust/latest")]
+#![cfg_attr(docsrs, feature(doc_cfg))]
+
 //! 使用Rust编写的酷q sdk。
 //!
 //! ## Get started
@@ -11,7 +14,9 @@
 //!
 //! ## Features
 //!
-//! * `full-priority`: 支持全部事件优先级。
+//! * `enhanced-cqcode`: 支持 [增强cq码(图片)][enhanced-cqcode]
+//!
+//! [enhanced-cqcode]: crate::targets::cqcode::CQImage
 //!
 //!
 //! ## Examples
@@ -22,7 +27,7 @@
 //! coolq-sdk-rust = "0.1"
 //!
 //! [build-dependencies]
-//! coolq-sdk-rust = { version = "0.1", features = ["full-priority"] }
+//! cqrs_builder = { version = "0.1", features = ["full-priority"] }
 //!
 //! [lib]
 //! crate-type = ["cdylib"]
@@ -32,7 +37,7 @@
 //! `build.rs`:
 //! ```should_panic
 //! // 在编译时生成适用于`coolq-sdk-rust`的app.json，json可在target目录同生成的二进制文件一起找到>
-//! use coolq_sdk_rust::gen_app_json::AppJson;
+//! use cqrs_builder::AppJson;
 //!
 //! fn main() {
 //!     AppJson::new("dev.gugugu.example") // appid
