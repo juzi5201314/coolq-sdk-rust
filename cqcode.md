@@ -23,6 +23,8 @@ CQCode可以
 
 ## 增强型图片cq码
 
+请使用`enhanced-cqcode` feature.
+
 [CQImage](https://docs.rs/coolq-sdk-rust/latest/coolq_sdk_rust/targets/cqcode/enum.CQImage.html) 可以帮助你方便的发送“其他目录下“，”二进制”，”base64编码“的图片。
 
 ```text

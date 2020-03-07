@@ -8,12 +8,6 @@
 coolq-sdk-rust = "0.1"
 ```
 
-目前还支持一个[feature](https://docs.rs/coolq-sdk-rust/latest/coolq_sdk_rust/#features):
-
-**`full-priority`** :
-
-> 启用该功能之后，[gen\_app\_json](https://docs.rs/coolq-sdk-rust/latest/coolq_sdk_rust/gen_app_json/index.html)会生成支持全部 [**优先级**](https://docs.cqp.im/dev/v9/app.json/event/#priority) 的app.json
-
 > **注意**  
 > 由于插件是编译成c共享库给酷q调用的  
 > 记得在Cargo.toml里添加:
@@ -30,7 +24,7 @@ coolq-sdk-rust = "0.1"
 coolq-sdk-rust = "0.1" 
 
 [build-dependencies] 
-coolq-sdk-rust = { version = "0.1", features = ["full-priority"] } 
+cqrs_builder = "0.1" 
 
 [lib] 
 crate-type = ["cdylib"]
@@ -54,8 +48,14 @@ fn main() {
         .finish();
 }
 ```
+目前还支持一个`feature`:
 
-更多信息可以在[gen\_app\_json](https://docs.rs/coolq-sdk-rust/latest/coolq_sdk_rust/gen_app_json/index.html)找到。
+**`full-priority`** :
+
+> 启用该功能之后，[cqrs_builder](https://docs.rs/cqrs_builder)会生成支持全部 [**优先级**](https://docs.cqp.im/dev/v9/app.json/event/#priority) 的app.json
+
+
+更多信息可以在[AppJson](https://docs.rs/cqrs_builder/0.1.1/cqrs_builder/struct.AppJson.html)找到。
 
 ## lib.rs
 
@@ -67,7 +67,7 @@ fn this_is_main() {
     add_log(CQLogLevel::INFOSUCCESS, "info", "enable").expect("日志发送失败");
 }
 
-#[listener(event = "PrivateMessageEvent", priority = "high")]
+#[listener(priority = "high")] // 如果开启了全优先级，才能用priority参数。
 fn private_msg(event: &mut PrivateMessageEvent) {
     if event.get_message().has_cqcode() {
         let mut msg = MessageSegment::new();
@@ -78,15 +78,25 @@ fn private_msg(event: &mut PrivateMessageEvent) {
     }
 }
 
-#[listener(event = "GroupMessageEvent")]
+#[listener]
 fn this_is_group_msg(event: &mut GroupMessageEvent) {
 
 }
 ```
 
-mian宏必须要写，main函数在插件enable事件时调用。
+main宏必须要写，main函数在插件enable事件时调用。
 
 event在[events](https://docs.rs/coolq-sdk-rust/latest/coolq_sdk_rust/events/index.html)查看。
 
 priority可选，为\[highest, high, medium, low\]。缺省为medium。 只有开启了`full-priority`才有效，否则请缺省。
 
+
+## listener的返回值与事件拦截
+listener函数可以有3种返回值:
+空元组，i32，bool。
+
+默认返回空元组；不拦截事件  
+
+i32：0为不拦截，1反之
+
+bool：false为不拦截，true反之
