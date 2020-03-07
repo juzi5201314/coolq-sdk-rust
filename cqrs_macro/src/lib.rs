@@ -2,9 +2,18 @@ extern crate proc_macro;
 
 use darling::FromMeta;
 use proc_macro2::TokenStream;
-use syn::ReturnType;
+use syn::{ReturnType, FnArg};
 
 use quote::quote;
+use std::borrow::Borrow;
+
+macro_rules! error {
+    ($tokens: expr, $message: expr) => {
+        return syn::Error::new_spanned($tokens, $message)
+            .to_compile_error()
+            .into();
+    };
+}
 
 #[cfg(not(test))]
 #[proc_macro_attribute]
@@ -14,9 +23,7 @@ pub fn main(_: proc_macro::TokenStream, item: proc_macro::TokenStream) -> proc_m
     let attrs = &func.attrs;
 
     if let ReturnType::Type(_, _) = func.sig.output {
-        return syn::Error::new_spanned(func.sig.output, "should return '()'.")
-            .to_compile_error()
-            .into();
+        error!(func.sig.output, "should return '()'.")
     }
 
     (quote! {
@@ -37,7 +44,7 @@ pub fn main(_: proc_macro::TokenStream, item: proc_macro::TokenStream) -> proc_m
 
 #[derive(Debug, FromMeta)]
 struct MacroArgs {
-    event: String,
+    //event: String,
     #[darling(default)]
     priority: Option<String>,
 }
@@ -46,21 +53,37 @@ struct MacroArgs {
 pub fn listener(
     attr: proc_macro::TokenStream, item: proc_macro::TokenStream,
 ) -> proc_macro::TokenStream {
-    let attr2 = attr.clone();
     let args = MacroArgs::from_list(&syn::parse_macro_input!(attr as syn::AttributeArgs)).unwrap();
     let func = syn::parse_macro_input!(item as syn::ItemFn);
     let func_name = &func.sig.ident;
     let attrs = &func.attrs;
 
-    let event = args.event.parse::<TokenStream>().unwrap();
-    if let Some(extern_func_info) = get_event_func(args.event.as_ref()) {
+    let find_event_name = || -> Option<String> {
+        if let FnArg::Typed(t) = &func.sig.inputs.first()? {
+            if let syn::Type::Reference(tr) = t.ty.borrow() {
+                if let syn::Type::Path(tp) = tr.elem.borrow() {
+                    return Some((&tp.path.segments.first()?.ident).to_string())
+                }
+            }
+        }
+        None
+    };
+    let event_name = match find_event_name() {
+        Some(some) => some,
+        None => {
+            error!(&func.sig.inputs, "fn funcname(event: &mut [AnyEvent])")
+        }
+    };
+
+    if let Some(extern_func_info) = get_event_func(event_name.as_ref()) {
+        let event = event_name.parse::<TokenStream>().unwrap();
         let extern_func_name = if let Some(priority) = args.priority {
             format!("{}_{}", extern_func_info.0, priority)
         } else {
             format!("{}_medium", extern_func_info.0)
         }
-        .parse::<TokenStream>()
-        .unwrap();
+            .parse::<TokenStream>()
+            .unwrap();
         let args_name_t = extern_func_info.1.parse::<TokenStream>().unwrap();
         let args_name = extern_func_info.2.parse::<TokenStream>().unwrap();
         let result_type = extern_func_info.3.parse::<TokenStream>().unwrap();
@@ -73,9 +96,7 @@ pub fn listener(
             }
         }).into()
     } else {
-        return syn::Error::new_spanned(TokenStream::from(attr2), "Cannot find this event.")
-            .to_compile_error()
-            .into();
+        error!(&func.sig.inputs.first().unwrap(), "Cannot find this event.")
     }
 }
 
