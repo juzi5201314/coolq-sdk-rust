@@ -442,6 +442,8 @@ impl std::fmt::Display for Error {
     }
 }
 
+impl std::error::Error for Error {}
+
 /// 返回api是否调用成功。
 ///
 /// 如发送消息失败，获取群信息失败，不能发送图片等等，返回Error。
