@@ -225,7 +225,7 @@ pub fn parse(msg: &str) -> Vec<CQCode> {
                         CQCode::At(get_arg("qq").parse::<i64>().unwrap_or(-1))
                     }
                 }
-                "rps" => CQCode::Sface(get_arg("type").parse::<i32>().unwrap_or(-1)),
+                "rps" => CQCode::Rps(get_arg("type").parse::<i32>().unwrap_or(-1)),
                 "shake" => CQCode::Shake(),
                 "location" => CQCode::Location(
                     get_arg("lat").parse::<f32>().unwrap_or(-1f32),
