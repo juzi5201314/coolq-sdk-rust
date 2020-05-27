@@ -68,7 +68,7 @@
 //! // 必须有一个`coolq_sdk_rust::main`函数。
 //! #[coolq_sdk_rust::main]
 //! fn main() {
-//!     add_log(CQLogLevel::INFOSUCCESS, "info", "插件enable").expect("日志发送失败");
+//!     api::add_log(CQLogLevel::INFOSUCCESS, "info", "插件enable").expect("日志发送失败");
 //! }
 //!
 //! // `priority`可选填，默认中优先级。

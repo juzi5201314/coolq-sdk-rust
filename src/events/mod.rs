@@ -22,9 +22,23 @@ pub use group_message::*;
 pub use group_upload::*;
 pub use private_message::*;
 
+macro_rules! impl_new {
+    ($($name:ident),*) => {
+        $(
+            impl $name {
+                pub fn new() -> Self {
+                    $name
+                }
+            }
+        )*
+    };
+}
+
 #[allow(dead_code)]
 pub struct StartEvent;
 #[allow(dead_code)]
 pub struct ExitEvent;
 #[allow(dead_code)]
 pub struct DisableEvent;
+
+impl_new!(StartEvent, ExitEvent, DisableEvent);

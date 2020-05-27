@@ -14,13 +14,12 @@
     <cargoProject FILE="$PROJECT_DIR$/cqrs_builder/Cargo.toml" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="a88e365e-3801-49d2-9ed4-0397c899e63b" name="Default Changelist" comment="update">
-      <change beforePath="$PROJECT_DIR$/.idea/coolq-sdk-rust.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/coolq-sdk-rust.iml" afterDir="false" />
+    <list default="true" id="a88e365e-3801-49d2-9ed4-0397c899e63b" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/Cargo.toml" beforeDir="false" afterPath="$PROJECT_DIR$/Cargo.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/events/mod.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/events/mod.rs" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/lib.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/lib.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/targets/cqcode.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/targets/cqcode.rs" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/targets/user.rs" beforeDir="false" afterPath="$PROJECT_DIR$/src/targets/user.rs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tests/test_bench.rs" beforeDir="false" afterPath="$PROJECT_DIR$/tests/test_bench.rs" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -68,13 +67,6 @@
       </set>
     </option>
   </component>
-  <component name="IgnoredFileRootStore">
-    <option name="generatedRoots">
-      <set>
-        <option value="$PROJECT_DIR$/.idea" />
-      </set>
-    </option>
-  </component>
   <component name="MacroExpansionManager">
     <option name="directoryName" value="TolXYCmz" />
   </component>
@@ -84,7 +76,6 @@
   </component>
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
-    <option name="showExcludedFiles" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
   <component name="PropertiesComponent">
@@ -93,7 +84,8 @@
     <property name="RunOnceActivity.ShowReadmeOnStart" value="true" />
     <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="false" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/../rssbot" />
+    <property name="cf.first.check.clang-format" value="false" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="org.rust.cargo.project.model.PROJECT_DISCOVERY" value="true" />
     <property name="org.rust.hideDetachedFileNotifications/home/soeur/CLionProjects/coolq-sdk-rust/src/cqp.rs" value="true" />
     <property name="org.rust.hideDetachedFileNotifications/home/soeur/CLionProjects/coolq-sdk-rust/src/events/enable.rs" value="true" />
@@ -102,7 +94,7 @@
     <property name="org.rust.hideDetachedFileNotifications/home/soeur/CLionProjects/coolq-sdk-rust/src/events/private_msg.rs" value="true" />
     <property name="org.rust.hideDetachedFileNotifications/home/soeur/CLionProjects/coolq-sdk-rust/src/listener.rs" value="true" />
     <property name="org.rust.hideDetachedFileNotifications/home/soeur/CLionProjects/coolq-sdk-rust/src/qqtargets.rs" value="true" />
-    <property name="settings.editor.selected.configurable" value="http.proxy" />
+    <property name="settings.editor.selected.configurable" value="preferences.pluginManager" />
     <property name="settings.editor.splitter.proportion" value="0.09703946" />
   </component>
   <component name="RecentsManager">
@@ -116,23 +108,10 @@
       <command value="cargo publish" />
     </option>
   </component>
-  <component name="RunManager" selected="Cargo Command.rustdoc">
+  <component name="RunManager" selected="Cargo Command.publish [coolq-sdk-rust]">
     <configuration name="Bench test_bench" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
       <option name="channel" value="DEFAULT" />
       <option name="command" value="bench --package coolq-sdk-rust --test test_bench -- --exact" />
-      <option name="allFeatures" value="false" />
-      <option name="nocapture" value="false" />
-      <option name="emulateTerminal" value="false" />
-      <option name="backtrace" value="SHORT" />
-      <option name="workingDirectory" value="file://$PROJECT_DIR$" />
-      <envs />
-      <method v="2">
-        <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
-      </method>
-    </configuration>
-    <configuration name="Test test" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
-      <option name="channel" value="DEFAULT" />
-      <option name="command" value="test --package coolq-sdk-rust --test test_bench test -- --exact" />
       <option name="allFeatures" value="false" />
       <option name="nocapture" value="false" />
       <option name="emulateTerminal" value="false" />
@@ -158,7 +137,7 @@
         <option name="CARGO.BUILD_TASK_PROVIDER" enabled="true" />
       </method>
     </configuration>
-    <configuration name="publish [coolq-sdk-rust]" type="CargoCommandRunConfiguration" factoryName="Cargo Command" temporary="true">
+    <configuration name="publish [coolq-sdk-rust]" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
       <option name="channel" value="DEFAULT" />
       <option name="command" value="publish --allow-dirty" />
       <option name="allFeatures" value="false" />
@@ -202,15 +181,10 @@
       <item itemvalue="Cargo Command.build" />
       <item itemvalue="Cargo Command.rustdoc" />
       <item itemvalue="Cargo Command.test" />
-      <item itemvalue="Cargo Command.Test test" />
       <item itemvalue="Cargo Command.publish [coolq-sdk-rust]" />
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Cargo Command.publish [coolq-sdk-rust]" />
-        <item itemvalue="Cargo Command.Test test" />
-        <item itemvalue="Cargo Command.publish [coolq-sdk-rust]" />
-        <item itemvalue="Cargo Command.Test test" />
         <item itemvalue="Cargo Command.publish [coolq-sdk-rust]" />
       </list>
     </recent_temporary>
@@ -219,18 +193,6 @@
     <option name="macroExpansionEngine" value="NEW" />
     <option name="toolchainHomeDirectory" value="$USER_HOME$/.cargo/bin" />
     <option name="version" value="2" />
-  </component>
-  <component name="ServiceViewManager">
-    <option name="viewStates">
-      <list>
-        <serviceView>
-          <treeState>
-            <expand />
-            <select />
-          </treeState>
-        </serviceView>
-      </list>
-    </option>
   </component>
   <component name="SvnConfiguration">
     <configuration />
@@ -314,56 +276,12 @@
       <workItem from="1583236780298" duration="260000" />
       <workItem from="1583240185016" duration="2538000" />
       <workItem from="1583301882894" duration="25000" />
-      <workItem from="1583547113072" duration="7907000" />
-    </task>
-    <task id="LOCAL-00036" summary="添加编译时生成app.json功能。">
-      <created>1581575508055</created>
-      <option name="number" value="00036" />
-      <option name="presentableId" value="LOCAL-00036" />
-      <option name="project" value="LOCAL" />
-      <updated>1581575508055</updated>
-    </task>
-    <task id="LOCAL-00037" summary="增加文档注释和测试">
-      <created>1581577487825</created>
-      <option name="number" value="00037" />
-      <option name="presentableId" value="LOCAL-00037" />
-      <option name="project" value="LOCAL" />
-      <updated>1581577487825</updated>
-    </task>
-    <task id="LOCAL-00038" summary="简单重构事件处理">
-      <created>1581856864460</created>
-      <option name="number" value="00038" />
-      <option name="presentableId" value="LOCAL-00038" />
-      <option name="project" value="LOCAL" />
-      <updated>1581856864460</updated>
-    </task>
-    <task id="LOCAL-00039" summary="把原qqtarget解耦出来">
-      <created>1581856946322</created>
-      <option name="number" value="00039" />
-      <option name="presentableId" value="LOCAL-00039" />
-      <option name="project" value="LOCAL" />
-      <updated>1581856946322</updated>
-    </task>
-    <task id="LOCAL-00040" summary="删除不需要的文件">
-      <created>1581857042014</created>
-      <option name="number" value="00040" />
-      <option name="presentableId" value="LOCAL-00040" />
-      <option name="project" value="LOCAL" />
-      <updated>1581857042015</updated>
-    </task>
-    <task id="LOCAL-00041" summary="增加需要的转换。&#10;增加to和try_to方法">
-      <created>1581857107120</created>
-      <option name="number" value="00041" />
-      <option name="presentableId" value="LOCAL-00041" />
-      <option name="project" value="LOCAL" />
-      <updated>1581857107120</updated>
-    </task>
-    <task id="LOCAL-00042" summary="增加full-priority功能，用于生成全部优先级事件回调。&#10;删除start,enable,disable,exit事件的优先级分级，本人认为这4个事件没必要分优先级，而且也不应该进行事件拦截。">
-      <created>1581857339446</created>
-      <option name="number" value="00042" />
-      <option name="presentableId" value="LOCAL-00042" />
-      <option name="project" value="LOCAL" />
-      <updated>1581857339446</updated>
+      <workItem from="1583547113072" duration="15456000" />
+      <workItem from="1583563363703" duration="10648000" />
+      <workItem from="1583644127517" duration="3623000" />
+      <workItem from="1583652546914" duration="845000" />
+      <workItem from="1583653411452" duration="2613000" />
+      <workItem from="1590548329092" duration="478000" />
     </task>
     <task id="LOCAL-00043" summary="重构了事件回调，删除了listener模块。">
       <created>1581857403250</created>
@@ -659,11 +577,60 @@
       <option name="project" value="LOCAL" />
       <updated>1583550744301</updated>
     </task>
-    <option name="localTasksCounter" value="85" />
+    <task id="LOCAL-00085" summary="更新文档注释">
+      <created>1583555271808</created>
+      <option name="number" value="00085" />
+      <option name="presentableId" value="LOCAL-00085" />
+      <option name="project" value="LOCAL" />
+      <updated>1583555271808</updated>
+    </task>
+    <task id="LOCAL-00086" summary="listener不再需要重复填写event参数了">
+      <created>1583559014944</created>
+      <option name="number" value="00086" />
+      <option name="presentableId" value="LOCAL-00086" />
+      <option name="project" value="LOCAL" />
+      <updated>1583559014944</updated>
+    </task>
+    <task id="LOCAL-00087" summary="事件回调支持async（文档稍后补">
+      <created>1583566326712</created>
+      <option name="number" value="00087" />
+      <option name="presentableId" value="LOCAL-00087" />
+      <option name="project" value="LOCAL" />
+      <updated>1583566326712</updated>
+    </task>
+    <task id="LOCAL-00088" summary="增加block_on宏。完善异步事件回调。">
+      <created>1583577736538</created>
+      <option name="number" value="00088" />
+      <option name="presentableId" value="LOCAL-00088" />
+      <option name="project" value="LOCAL" />
+      <updated>1583577736538</updated>
+    </task>
+    <task id="LOCAL-00089" summary="更新文档。v0.1.2">
+      <created>1583579374036</created>
+      <option name="number" value="00089" />
+      <option name="presentableId" value="LOCAL-00089" />
+      <option name="project" value="LOCAL" />
+      <updated>1583579374036</updated>
+    </task>
+    <task id="LOCAL-00090" summary="优先级名字写错会报错了">
+      <created>1583581038501</created>
+      <option name="number" value="00090" />
+      <option name="presentableId" value="LOCAL-00090" />
+      <option name="project" value="LOCAL" />
+      <updated>1583581038501</updated>
+    </task>
+    <task id="LOCAL-00091" summary="为api:Error实现std::error::Error">
+      <created>1583648309987</created>
+      <option name="number" value="00091" />
+      <option name="presentableId" value="LOCAL-00091" />
+      <option name="project" value="LOCAL" />
+      <updated>1583648309987</updated>
+    </task>
+    <option name="localTasksCounter" value="92" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
-    <option name="version" value="1" />
+    <option name="version" value="2" />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
     <option name="TAB_STATES">
@@ -695,26 +662,18 @@
         </entry>
         <entry key="MAIN">
           <value>
-            <State>
-              <option name="COLUMN_ORDER" />
-            </State>
+            <State />
           </value>
         </entry>
       </map>
     </option>
+    <option name="oldMeFiltersMigrated" value="true" />
   </component>
   <component name="VcsManagerConfiguration">
     <option name="ADD_EXTERNAL_FILES_SILENTLY" value="true" />
     <ignored-roots>
       <path value="$PROJECT_DIR$/example/mycqpbot" />
     </ignored-roots>
-    <MESSAGE value="基本重写完成" />
-    <MESSAGE value="修修补补。&#10;api文档： 咕咕咕" />
-    <MESSAGE value="支持listener可以返回空" />
-    <MESSAGE value="将默认优先级函数名字设置成中优先级，支持listener在full-priority情况下也能使用默认优先级" />
-    <MESSAGE value="为MessageSegment实现debug，为str实现has_cq_code和has_cq_code方法。" />
-    <MESSAGE value="修修补补，格式化代码。添加注释" />
-    <MESSAGE value="修修补补" />
     <MESSAGE value="readme添加了指向docs.rs的文档" />
     <MESSAGE value="跳过某个必定出错的文档测试&#10;添加一些徽章" />
     <MESSAGE value="将增强cq码分离成feature: enhanced-cqcode" />
@@ -733,17 +692,32 @@
     <MESSAGE value="async-std -&gt; tokio" />
     <MESSAGE value="把生成app.json抽出来独立一个crate" />
     <MESSAGE value="刚刚忘记改文档注释和feature了（尴尬" />
-    <option name="LAST_COMMIT_MESSAGE" value="刚刚忘记改文档注释和feature了（尴尬" />
+    <MESSAGE value="更新文档注释" />
+    <MESSAGE value="listener不再需要重复填写event参数了" />
+    <MESSAGE value="事件回调支持async（文档稍后补" />
+    <MESSAGE value="增加block_on宏。完善异步事件回调。" />
+    <MESSAGE value="更新文档。v0.1.2" />
+    <MESSAGE value="优先级名字写错会报错了" />
+    <MESSAGE value="为api:Error实现std::error::Error" />
+    <option name="LAST_COMMIT_MESSAGE" value="为api:Error实现std::error::Error" />
   </component>
   <component name="WindowStateProjectService">
+    <state x="433" y="192" key="#Custom_Plugin_Repositories" timestamp="1583653294105">
+      <screen x="0" y="40" width="1920" height="1040" />
+    </state>
+    <state x="433" y="192" key="#Custom_Plugin_Repositories/-1920.32.1536.832/0.40.1920.1040@0.40.1920.1040" timestamp="1583653294105" />
+    <state x="433" y="192" key="#HTTP_Proxy" timestamp="1583653267879">
+      <screen x="0" y="40" width="1920" height="1040" />
+    </state>
+    <state x="433" y="192" key="#HTTP_Proxy/-1920.32.1536.832/0.40.1920.1040@0.40.1920.1040" timestamp="1583653267879" />
     <state x="452" y="132" key="#Notifications" timestamp="1583549569027">
       <screen x="0" y="40" width="1920" height="1040" />
     </state>
     <state x="452" y="132" key="#Notifications/-1920.32.1536.832/0.40.1920.1040@0.40.1920.1040" timestamp="1583549569027" />
-    <state x="701" y="338" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1583554700822">
+    <state x="701" y="338" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1583655595436">
       <screen x="0" y="40" width="1920" height="1040" />
     </state>
-    <state x="701" y="338" key="#com.intellij.execution.impl.EditConfigurationsDialog/-1920.32.1536.832/0.40.1920.1040@0.40.1920.1040" timestamp="1583554700822" />
+    <state x="701" y="338" key="#com.intellij.execution.impl.EditConfigurationsDialog/-1920.32.1536.832/0.40.1920.1040@0.40.1920.1040" timestamp="1583655595436" />
     <state x="701" y="328" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.26.1920.1054@0.26.1920.1054" timestamp="1582093262210" />
     <state x="2338" y="211" key="#com.intellij.execution.impl.EditConfigurationsDialog/1920.0.1920.1080/0.26.1920.1054@1920.0.1920.1080" timestamp="1575958250295" />
     <state x="515" y="358" width="879" height="391" key="#com.intellij.fileTypes.FileTypeChooser" timestamp="1582525542848">
@@ -764,10 +738,10 @@
     </state>
     <state x="693" y="312" key="#com.intellij.refactoring.safeDelete.UnsafeUsagesDialog/-1920.32.1536.832/0.40.1920.1040@0.40.1920.1040" timestamp="1582873634195" />
     <state x="693" y="302" width="524" height="503" key="#com.intellij.refactoring.safeDelete.UnsafeUsagesDialog/0.26.1920.1054@0.26.1920.1054" timestamp="1581598402335" />
-    <state x="443" y="82" width="1298" height="862" key="CommitChangelistDialog2" timestamp="1583550743394">
+    <state x="443" y="82" width="1298" height="862" key="CommitChangelistDialog2" timestamp="1583648308925">
       <screen x="0" y="40" width="1920" height="1040" />
     </state>
-    <state x="443" y="82" key="CommitChangelistDialog2/-1920.32.1536.832/0.40.1920.1040@0.40.1920.1040" timestamp="1583550743394" />
+    <state x="443" y="82" key="CommitChangelistDialog2/-1920.32.1536.832/0.40.1920.1040@0.40.1920.1040" timestamp="1583648308925" />
     <state x="395" y="149" width="1298" height="862" key="CommitChangelistDialog2/0.26.1920.1054@0.26.1920.1054" timestamp="1582528310120" />
     <state x="2286" y="146" width="1092" height="814" key="CommitChangelistDialog2/1920.0.1920.1080/0.26.1920.1054@1920.0.1920.1080" timestamp="1576123461557" />
     <state x="100" y="149" width="1720" height="854" key="DiffContextDialog" timestamp="1582017606381">
@@ -775,34 +749,34 @@
     </state>
     <state x="100" y="149" key="DiffContextDialog/0.26.1920.1054@0.26.1920.1054" timestamp="1582017606380" />
     <state x="2020" y="126" width="1720" height="854" key="DiffContextDialog/1920.0.1920.1080/0.26.1920.1054@1920.0.1920.1080" timestamp="1575603444320" />
-    <state x="684" y="340" width="592" height="514" key="FileChooserDialogImpl" timestamp="1583549741683">
+    <state x="684" y="340" width="592" height="514" key="FileChooserDialogImpl" timestamp="1583655925733">
       <screen x="0" y="40" width="1920" height="1040" />
     </state>
-    <state x="684" y="340" key="FileChooserDialogImpl/-1920.32.1536.832/0.40.1920.1040@0.40.1920.1040" timestamp="1583549741683" />
+    <state x="684" y="340" key="FileChooserDialogImpl/-1920.32.1536.832/0.40.1920.1040@0.40.1920.1040" timestamp="1583655925733" />
     <state x="684" y="330" width="592" height="514" key="FileChooserDialogImpl/0.26.1920.1054@0.26.1920.1054" timestamp="1582447526382" />
     <state x="2604" y="311" key="FileChooserDialogImpl/1920.0.1920.1080/0.26.1920.1054@1920.0.1920.1080" timestamp="1576050829316" />
-    <state width="1869" height="270" key="GridCell.Tab.0.bottom" timestamp="1583555212206">
+    <state width="1869" height="270" key="GridCell.Tab.0.bottom" timestamp="1583657673123">
       <screen x="0" y="40" width="1920" height="1040" />
     </state>
-    <state width="1869" height="270" key="GridCell.Tab.0.bottom/-1920.32.1536.832/0.40.1920.1040@0.40.1920.1040" timestamp="1583555212206" />
+    <state width="1869" height="270" key="GridCell.Tab.0.bottom/-1920.32.1536.832/0.40.1920.1040@0.40.1920.1040" timestamp="1583657673123" />
     <state width="1872" height="277" key="GridCell.Tab.0.bottom/0.26.1920.1054@0.26.1920.1054" timestamp="1582528335084" />
     <state width="1872" height="277" key="GridCell.Tab.0.bottom/1920.0.1920.1080/0.26.1920.1054@1920.0.1920.1080" timestamp="1575958699877" />
-    <state width="1869" height="270" key="GridCell.Tab.0.center" timestamp="1583555212206">
+    <state width="1869" height="270" key="GridCell.Tab.0.center" timestamp="1583657673123">
       <screen x="0" y="40" width="1920" height="1040" />
     </state>
-    <state width="1869" height="270" key="GridCell.Tab.0.center/-1920.32.1536.832/0.40.1920.1040@0.40.1920.1040" timestamp="1583555212206" />
+    <state width="1869" height="270" key="GridCell.Tab.0.center/-1920.32.1536.832/0.40.1920.1040@0.40.1920.1040" timestamp="1583657673123" />
     <state width="1872" height="277" key="GridCell.Tab.0.center/0.26.1920.1054@0.26.1920.1054" timestamp="1582528335084" />
     <state width="1872" height="277" key="GridCell.Tab.0.center/1920.0.1920.1080/0.26.1920.1054@1920.0.1920.1080" timestamp="1575958699877" />
-    <state width="1869" height="270" key="GridCell.Tab.0.left" timestamp="1583555212206">
+    <state width="1869" height="270" key="GridCell.Tab.0.left" timestamp="1583657673123">
       <screen x="0" y="40" width="1920" height="1040" />
     </state>
-    <state width="1869" height="270" key="GridCell.Tab.0.left/-1920.32.1536.832/0.40.1920.1040@0.40.1920.1040" timestamp="1583555212206" />
+    <state width="1869" height="270" key="GridCell.Tab.0.left/-1920.32.1536.832/0.40.1920.1040@0.40.1920.1040" timestamp="1583657673123" />
     <state width="1872" height="277" key="GridCell.Tab.0.left/0.26.1920.1054@0.26.1920.1054" timestamp="1582528335083" />
     <state width="1872" height="277" key="GridCell.Tab.0.left/1920.0.1920.1080/0.26.1920.1054@1920.0.1920.1080" timestamp="1575958699877" />
-    <state width="1869" height="270" key="GridCell.Tab.0.right" timestamp="1583555212206">
+    <state width="1869" height="270" key="GridCell.Tab.0.right" timestamp="1583657673123">
       <screen x="0" y="40" width="1920" height="1040" />
     </state>
-    <state width="1869" height="270" key="GridCell.Tab.0.right/-1920.32.1536.832/0.40.1920.1040@0.40.1920.1040" timestamp="1583555212206" />
+    <state width="1869" height="270" key="GridCell.Tab.0.right/-1920.32.1536.832/0.40.1920.1040@0.40.1920.1040" timestamp="1583657673123" />
     <state width="1872" height="277" key="GridCell.Tab.0.right/0.26.1920.1054@0.26.1920.1054" timestamp="1582528335084" />
     <state width="1872" height="277" key="GridCell.Tab.0.right/1920.0.1920.1080/0.26.1920.1054@1920.0.1920.1080" timestamp="1575958699877" />
     <state x="1014" y="286" width="605" height="565" key="MultipleFileMergeDialog" timestamp="1582525774815">
@@ -814,15 +788,20 @@
       <screen x="1920" y="0" width="1920" height="1080" />
     </state>
     <state x="2588" y="266" width="574" height="575" key="RollbackChangesDialog/1920.0.1920.1080/0.26.1920.1054@1920.0.1920.1080" timestamp="1575603430328" />
-    <state x="333" y="167" width="1217" height="731" key="SettingsEditor" timestamp="1581925418102">
-      <screen x="0" y="26" width="1920" height="1054" />
-    </state>
-    <state x="333" y="167" width="1217" height="731" key="SettingsEditor/0.26.1920.1054@0.26.1920.1054" timestamp="1581925418102" />
-    <state x="2399" y="188" width="962" height="731" key="SettingsEditor/1920.0.1920.1080/0.26.1920.1054@1920.0.1920.1080" timestamp="1575612732456" />
-    <state x="555" y="318" width="800" height="529" key="Vcs.Push.Dialog.v2" timestamp="1583550746297">
+    <state x="333" y="179" width="1217" height="883" key="SettingsEditor" timestamp="1583653352546">
       <screen x="0" y="40" width="1920" height="1040" />
     </state>
-    <state x="555" y="318" key="Vcs.Push.Dialog.v2/-1920.32.1536.832/0.40.1920.1040@0.40.1920.1040" timestamp="1583550746297" />
+    <state x="333" y="179" width="1217" height="883" key="SettingsEditor/-1920.32.1536.832/0.40.1920.1040@0.40.1920.1040" timestamp="1583653352546" />
+    <state x="333" y="167" width="1217" height="731" key="SettingsEditor/0.26.1920.1054@0.26.1920.1054" timestamp="1581925418102" />
+    <state x="2399" y="188" width="962" height="731" key="SettingsEditor/1920.0.1920.1080/0.26.1920.1054@1920.0.1920.1080" timestamp="1575612732456" />
+    <state x="614" y="238" width="675" height="655" key="StructurePopup" timestamp="1583655340830">
+      <screen x="0" y="40" width="1920" height="1040" />
+    </state>
+    <state x="614" y="238" width="675" height="655" key="StructurePopup/-1920.32.1536.832/0.40.1920.1040@0.40.1920.1040" timestamp="1583655340830" />
+    <state x="555" y="318" width="800" height="529" key="Vcs.Push.Dialog.v2" timestamp="1583648311989">
+      <screen x="0" y="40" width="1920" height="1040" />
+    </state>
+    <state x="555" y="318" key="Vcs.Push.Dialog.v2/-1920.32.1536.832/0.40.1920.1040@0.40.1920.1040" timestamp="1583648311989" />
     <state x="555" y="308" width="800" height="529" key="Vcs.Push.Dialog.v2/0.26.1920.1054@0.26.1920.1054" timestamp="1582528311091" />
     <state x="2475" y="289" width="800" height="529" key="Vcs.Push.Dialog.v2/1920.0.1920.1080/0.26.1920.1054@1920.0.1920.1080" timestamp="1576123462856" />
     <state x="514" y="176" width="615" height="684" key="com.intellij.openapi.editor.actions.MultiplePasteAction$ClipboardContentChooser" timestamp="1581853858679">
@@ -848,10 +827,10 @@
       <screen x="0" y="26" width="1920" height="1054" />
     </state>
     <state x="624" y="253" width="672" height="677" key="run.anything.popup/0.26.1920.1054@0.26.1920.1054" timestamp="1582093036689" />
-    <state x="624" y="230" width="840" height="652" key="search.everywhere.popup" timestamp="1583554627514">
+    <state x="624" y="230" width="840" height="652" key="search.everywhere.popup" timestamp="1583655304074">
       <screen x="0" y="40" width="1920" height="1040" />
     </state>
-    <state x="624" y="230" width="840" height="652" key="search.everywhere.popup/-1920.32.1536.832/0.40.1920.1040@0.40.1920.1040" timestamp="1583554627514" />
+    <state x="624" y="230" width="840" height="652" key="search.everywhere.popup/-1920.32.1536.832/0.40.1920.1040@0.40.1920.1040" timestamp="1583655304074" />
     <state x="624" y="219" width="719" height="660" key="search.everywhere.popup/0.26.1920.1054@0.26.1920.1054" timestamp="1582526271386" />
     <state x="2544" y="198" width="670" height="676" key="search.everywhere.popup/1920.0.1920.1080/0.26.1920.1054@1920.0.1920.1080" timestamp="1575708262916" />
   </component>
