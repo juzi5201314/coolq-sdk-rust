@@ -4,11 +4,10 @@ extern crate proc_macro;
 
 use darling::FromMeta;
 use proc_macro2::TokenStream;
-use syn::{ReturnType, FnArg};
+use syn::{FnArg, ReturnType};
 
 use quote::quote;
 use std::borrow::Borrow;
-use syn::export::TokenStream2;
 
 macro_rules! error {
     ($tokens: expr, $message: expr) => {
@@ -60,7 +59,9 @@ pub fn main(_: proc_macro::TokenStream, item: proc_macro::TokenStream) -> proc_m
 }
 
 #[proc_macro_attribute]
-pub fn block_on(_: proc_macro::TokenStream, item: proc_macro::TokenStream) -> proc_macro::TokenStream {
+pub fn block_on(
+    _: proc_macro::TokenStream, item: proc_macro::TokenStream,
+) -> proc_macro::TokenStream {
     item
 }
 
@@ -84,7 +85,7 @@ pub fn listener(
     let find_event_name = || -> Option<String> {
         if let FnArg::Typed(t) = &func.sig.inputs.first()? {
             if let syn::Type::Path(tr) = t.ty.borrow() {
-                return Some((&tr.path.segments.first()?.ident).to_string())
+                return Some((&tr.path.segments.first()?.ident).to_string());
             }
         }
         None
@@ -92,7 +93,10 @@ pub fn listener(
     let event_name = match find_event_name() {
         Some(some) => some,
         None => {
-            error!(&func.sig.inputs.first(), r#"The first parameter of the function must be "event: [AnyEvent]"."#)
+            error!(
+                &func.sig.inputs.first(),
+                r#"The first parameter of the function must be "event: [AnyEvent]"."#
+            )
         }
     };
 
@@ -101,12 +105,17 @@ pub fn listener(
         let extern_func_name = if let Some(priority) = args.priority {
             let prioritys = vec!["highest", "high", "medium", "low"];
             if !prioritys.contains(&priority.as_ref()) {
-                error!(TokenStream2::from(attr), format!("Priority can only be {}.", prioritys.join(",")))
+                error!(
+                    TokenStream::from(attr),
+                    format!("Priority can only be {}.", prioritys.join(","))
+                )
             }
             format!("{}_{}", extern_func_info.0, priority)
         } else {
             format!("{}_medium", extern_func_info.0)
-        }.parse::<TokenStream>().unwrap();
+        }
+        .parse::<TokenStream>()
+        .unwrap();
         let args_name_t = extern_func_info.1.parse::<TokenStream>().unwrap();
         let args_name = extern_func_info.2.parse::<TokenStream>().unwrap();
         let result_type = extern_func_info.3.parse::<TokenStream>().unwrap();
@@ -115,9 +124,17 @@ pub fn listener(
             if cfg!(not(feature = "async-listener")) {
                 error!(&func.sig.asyncness, "No 'async-listener' feature support.")
             }
-            if attrs.iter().find(|attr|
-                attr.path.segments.iter().find(|ps|
-                    ps.ident.to_string() == "block_on").is_some()).is_some() {
+            if attrs
+                .iter()
+                .find(|attr| {
+                    attr.path
+                        .segments
+                        .iter()
+                        .find(|ps| ps.ident.to_string() == "block_on")
+                        .is_some()
+                })
+                .is_some()
+            {
                 quote! {
                     coolq_sdk_rust::api::Convert::from(coolq_sdk_rust::block_on(#func_name(coolq_sdk_rust::events::#event::new(#args_name)))).into()
                 }
@@ -141,7 +158,8 @@ pub fn listener(
                 #func
                 #call
             }
-        }).into()
+        })
+        .into()
     } else {
         error!(&func.sig.inputs.first(), "Cannot find this event.")
     }
