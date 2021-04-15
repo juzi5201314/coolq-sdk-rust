@@ -157,7 +157,8 @@ pub const APIVER: usize = 9;
 #[export_name = "Initialize"]
 pub unsafe extern "stdcall" fn initialize(auth_code: i32) -> i32 {
     set_hook(Box::new(|info| {
-        set_fatal(info.to_string()).unwrap();
+        // 在 mirai-native 上会返回 0 而被当成错误
+        let _ = set_fatal(info.to_string());
     }));
     api::init(auth_code);
     0
