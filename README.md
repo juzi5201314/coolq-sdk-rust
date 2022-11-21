@@ -8,7 +8,7 @@
 ![Crates.io](https://img.shields.io/crates/v/coolq-sdk-rust)
 ![GitHub commit activity](https://img.shields.io/github/commit-activity/y/juzi5201314/coolq-sdk-rust)
 
-# 腾讯再次打压qq机器人，相关仓库归档。呵呵，国内企业。
+# 酷q已经停止更新
 
 [酷q](http://cqp.cc)的一个sdk。
 
